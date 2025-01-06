@@ -1,3 +1,4 @@
+// Data
 let products = [];
 let categories = [];
 let suppliers = [];
@@ -45,7 +46,7 @@ document.getElementById("categoryForm").addEventListener("submit", function (e) 
 
     e.target.reset();
     updateCategoryList();
-    updateProductDropdown();
+    updateProductCategoryDropdown();
 });
 
 function updateCategoryList() {
@@ -59,7 +60,7 @@ function updateCategoryList() {
     });
 }
 
-function updateProductDropdown() {
+function updateProductCategoryDropdown() {
     const categoryDropdown = document.getElementById("productCategory");
     categoryDropdown.innerHTML = "";
     categories.forEach((category) => {
