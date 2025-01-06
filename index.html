@@ -20,12 +20,21 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="suppliers-tab" data-bs-toggle="tab" data-bs-target="#suppliers" type="button" role="tab" aria-controls="suppliers" aria-selected="false">Supplier</button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" aria-controls="products" aria-selected="false">Produk</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab" aria-controls="customers" aria-selected="false">Pelanggan</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-controls="reports" aria-selected="false">Laporan</button>
+            </li>
         </ul>
 
-        <div class="tab-content">
+        <div class="tab-content mt-4">
             <!-- Transaksi Tab -->
             <div class="tab-pane fade show active" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
-                <h3 class="mt-4">Transaksi</h3>
+                <h3>Transaksi</h3>
                 <form id="transactionForm">
                     <div class="mb-3">
                         <label for="customerName" class="form-label">Nama Pelanggan</label>
@@ -77,7 +86,7 @@
 
             <!-- Kategori Tab -->
             <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
-                <h3 class="mt-4">Kategori</h3>
+                <h3>Kategori</h3>
                 <form id="categoryForm">
                     <div class="mb-3">
                         <label for="categoryName" class="form-label">Nama Kategori</label>
@@ -100,7 +109,7 @@
 
             <!-- Supplier Tab -->
             <div class="tab-pane fade" id="suppliers" role="tabpanel" aria-labelledby="suppliers-tab">
-                <h3 class="mt-4">Supplier</h3>
+                <h3>Supplier</h3>
                 <form id="supplierForm">
                     <div class="mb-3">
                         <label for="supplierName" class="form-label">Nama Supplier</label>
@@ -134,6 +143,92 @@
                     </thead>
                     <tbody id="supplierList"></tbody>
                 </table>
+            </div>
+
+            <!-- Produk Tab -->
+            <div class="tab-pane fade" id="products" role="tabpanel" aria-labelledby="products-tab">
+                <h3>Produk</h3>
+                <form id="productForm">
+                    <div class="mb-3">
+                        <label for="productName" class="form-label">Nama Produk</label>
+                        <input type="text" id="productName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productCategory" class="form-label">Kategori</label>
+                        <select id="productCategory" class="form-select" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productStock" class="form-label">Stok</label>
+                        <input type="number" id="productStock" class="form-control" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productPrice" class="form-label">Harga</label>
+                        <input type="number" id="productPrice" class="form-control" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Tambah Produk</button>
+                </form>
+                <h3 class="mt-4">Daftar Produk</h3>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama Produk</th>
+                            <th>Kategori</th>
+                            <th>Stok</th>
+                            <th>Harga</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productList"></tbody>
+                </table>
+            </div>
+
+            <!-- Pelanggan Tab -->
+            <div class="tab-pane fade" id="customers" role="tabpanel" aria-labelledby="customers-tab">
+                <h3>Pelanggan</h3>
+                <form id="customerForm">
+                    <div class="mb-3">
+                        <label for="customerName" class="form-label">Nama Pelanggan</label>
+                        <input type="text" id="customerName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerPhone" class="form-label">No HP</label>
+                        <input type="text" id="customerPhone" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Tambah Pelanggan</button>
+                </form>
+                <h3 class="mt-4">Daftar Pelanggan</h3>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama Pelanggan</th>
+                            <th>No HP</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerList"></tbody>
+                </table>
+            </div>
+
+            <!-- Laporan Tab -->
+            <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+                <h3>Laporan</h3>
+                <form id="reportForm">
+                    <div class="mb-3">
+                        <label for="reportType" class="form-label">Jenis Laporan</label>
+                        <select id="reportType" class="form-select" required>
+                            <option value="daily">Harian</option>
+                            <option value="monthly">Bulanan</option>
+                            <option value="yearly">Tahunan</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Generate Laporan</button>
+                </form>
+                <h3 class="mt-4">Daftar Laporan</h3>
+                <div id="reportContent">
+                    <!-- Konten laporan akan muncul di sini -->
+                </div>
             </div>
         </div>
     </div>
