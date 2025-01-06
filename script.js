@@ -294,3 +294,32 @@ function updateTransactionProductDropdown() {
 // Perbarui dropdown produk saat halaman dimuat
 updateTransactionProductDropdown();
 
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Fungsi untuk mengupdate tabel transaksi
+    updateTransactionList();
+});
+
+function updateTransactionList() {
+    const transactionList = document.getElementById("transactionList");
+    transactionList.innerHTML = ""; // Clear table body
+    transactions.forEach((transaction, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${transaction.id}</td>
+            <td>${transaction.customerName}</td>
+            <td>${transaction.productName}</td>
+            <td>${transaction.quantity}</td>
+            <td>Rp${transaction.totalPrice.toLocaleString()}</td>
+            <td>${transaction.paymentMethod}</td>
+            <td>${transaction.paymentStatus}</td>
+            <td>
+                <button class="btn btn-sm btn-warning" onclick="editTransaction(${index})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteTransaction(${index})">Hapus</button>
+            </td>
+        `;
+        transactionList.appendChild(row);
+    });
+}
+
+
