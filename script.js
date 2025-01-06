@@ -172,3 +172,99 @@ function populateDropdown() {
 
 // Panggil fungsi untuk populate dropdown
 populateDropdown();
+
+
+// Fungsi edit untuk setiap row pada tabel
+function editRow(tableId, index) {
+    currentEditingIndex = index;
+    const data = eval(tableId); // Get the data array from global scope
+    const item = data[index];
+
+    if (tableId === 'pelangganList') {
+        document.getElementById('pelangganNama').value = item.nama;
+        document.getElementById('pelangganEmail').value = item.email;
+        document.getElementById('pelangganNoHp').value = item.noHp;
+        document.getElementById('savePelangganBtn').style.display = 'none';
+        document.getElementById('editPelangganBtn').style.display = 'block';
+    } else if (tableId === 'produkList') {
+        document.getElementById('produkNama').value = item.nama;
+        document.getElementById('produkHarga').value = item.harga;
+        document.getElementById('produkStok').value = item.stok;
+        document.getElementById('saveProdukBtn').style.display = 'none';
+        document.getElementById('editProdukBtn').style.display = 'block';
+    } else if (tableId === 'kategoriList') {
+        document.getElementById('kategoriNama').value = item.nama;
+        document.getElementById('saveKategoriBtn').style.display = 'none';
+        document.getElementById('editKategoriBtn').style.display = 'block';
+    } else if (tableId === 'suplierList') {
+        document.getElementById('suplierNama').value = item.nama;
+        document.getElementById('suplierNoHp').value = item.noHp;
+        document.getElementById('suplierAlamat').value = item.alamat;
+        document.getElementById('saveSuplierBtn').style.display = 'none';
+        document.getElementById('editSuplierBtn').style.display = 'block';
+    } else if (tableId === 'transaksiList') {
+        // Populate form fields for transaksi
+        document.getElementById('transaksiPelanggan').value = item.pelanggan;
+        document.getElementById('transaksiProduk').value = item.produk;
+        document.getElementById('transaksiJumlah').value = item.jumlah;
+        document.getElementById('transaksiTotal').value = item.total;
+        document.getElementById('saveTransaksiBtn').style.display = 'none';
+    }
+}
+
+// Fungsi delete untuk setiap row pada tabel
+function deleteRow(tableId, index) {
+    const data = eval(tableId); // Get the data array from global scope
+    data.splice(index, 1);
+    updateTable(tableId, data);
+}
+document.getElementById('transaksiJumlah').addEventListener('input', function() {
+    const hargaProduk = produk.find(p => p.id === document.getElementById('transaksiProduk').value).harga;
+    const jumlah = parseInt(this.value, 10);
+    const total = hargaProduk * jumlah;
+    document.getElementById('transaksiTotal').value = total;
+});
+// Fungsi untuk update tabel
+function updateTable(elementId, data) {
+    const tableBody = document.getElementById(elementId);
+    tableBody.innerHTML = '';
+    data.forEach((item, index) => {
+        const row = document.createElement('tr');
+        for (const key in item) {
+            if (item.hasOwnProperty(key)) {
+                const cell = document.createElement('td');
+                cell.innerText = item[key];
+                row.appendChild(cell);
+            }
+        }
+        row.innerHTML += `
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="editRow('${elementId}', ${index})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteRow('${elementId}', ${index})">Hapus</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+// Fungsi untuk menambahkan item ke dropdown Transaksi
+function populateDropdown() {
+    const pelangganSelect = document.getElementById('transaksiPelanggan');
+    const produkSelect = document.getElementById('transaksiProduk');
+    
+    pelangganSelect.innerHTML = pelanggan.map(p => `<option value="${p.id}">${p.nama}</option>`).join('');
+    produkSelect.innerHTML = produk.map(p => `<option value="${p.id}">${p.nama}</option>`).join('');
+}
+
+// Panggil fungsi untuk populate dropdown
+populateDropdown();
+document.getElementById('profileForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const username = document.getElementById('profileUsername').value;
+    const email = document.getElementById('profileEmail').value;
+    const password = document.getElementById('profilePassword').value;
+
+    // Simulasi menyimpan profil user
+    console.log('Profil disimpan:', { username, email, password });
+});
+
