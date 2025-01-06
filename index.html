@@ -1,277 +1,239 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasir Aplikasi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Sistem Kasir CRUD</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .nav-tabs .nav-link.active {
+            color: white;
+            background-color: #007bff;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="container mt-4">
-        <!-- Navigasi Tab -->
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab" aria-controls="transactions" aria-selected="true">Transaksi</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab" aria-controls="categories" aria-selected="false">Kategori</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="suppliers-tab" data-bs-toggle="tab" data-bs-target="#suppliers" type="button" role="tab" aria-controls="suppliers" aria-selected="false">Supplier</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" aria-controls="products" aria-selected="false">Produk</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab" aria-controls="customers" aria-selected="false">Pelanggan</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-controls="reports" aria-selected="false">Laporan</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Profil User</button>
-            </li>
+<div class="container mt-5">
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="pills-pelanggan-tab" data-bs-toggle="pill" href="#pills-pelanggan" role="tab" aria-controls="pills-pelanggan" aria-selected="true">Pelanggan</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="pills-produk-tab" data-bs-toggle="pill" href="#pills-produk" role="tab" aria-controls="pills-produk" aria-selected="false">Produk</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="pills-kategori-tab" data-bs-toggle="pill" href="#pills-kategori" role="tab" aria-controls="pills-kategori" aria-selected="false">Kategori</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="pills-suplier-tab" data-bs-toggle="pill" href="#pills-suplier" role="tab" aria-controls="pills-suplier" aria-selected="false">Suplier</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="pills-transaksi-tab" data-bs-toggle="pill" href="#pills-transaksi" role="tab" aria-controls="pills-transaksi" aria-selected="false">Transaksi</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="pills-laporan-tab" data-bs-toggle="pill" href="#pills-laporan" role="tab" aria-controls="pills-laporan" aria-selected="false">Laporan</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="pills-profil-tab" data-bs-toggle="pill" href="#pills-profil" role="tab" aria-controls="pills-profil" aria-selected="false">Profil User</a>
+        </li>
+    </ul>
 
-        </ul>
-
-        <div class="tab-content mt-4">
-            <!-- Transaksi Tab -->
-            <div class="tab-pane fade show active" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
-                <h3>Transaksi</h3>
-                <form id="transactionForm">
-                    <div class="mb-3">
-                        <label for="customerName" class="form-label">Nama Pelanggan</label>
-                        <input type="text" id="customerName" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="transactionProduct" class="form-label">Produk</label>
-                        <select id="transactionProduct" class="form-select" required></select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="transactionQuantity" class="form-label">Jumlah</label>
-                        <input type="number" id="transactionQuantity" class="form-control" min="1" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
-                        <select id="paymentMethod" class="form-select" required>
-                            <option value="Cash">Cash</option>
-                            <option value="Transfer">Transfer</option>
-                            <option value="E-Wallet">E-Wallet</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="paymentStatus" class="form-label">Status Pembayaran</label>
-                        <select id="paymentStatus" class="form-select" required>
-                            <option value="Lunas">Lunas</option>
-                            <option value="Belum Lunas">Belum Lunas</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
-                </form>
-
-                <h3 class="mt-4">Daftar Transaksi</h3>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Pelanggan</th>
-                            <th>Produk</th>
-                            <th>Jumlah</th>
-                            <th>Total Harga</th>
-                            <th>Metode Pembayaran</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactionList"></tbody>
-                </table>
-            </div>
-
-            <!-- Kategori Tab -->
-            <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
-                <h3>Kategori</h3>
-                <form id="categoryForm">
-                    <div class="mb-3">
-                        <label for="categoryName" class="form-label">Nama Kategori</label>
-                        <input type="text" id="categoryName" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Tambah Kategori</button>
-                </form>
-                <h3 class="mt-4">Daftar Kategori</h3>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nama Kategori</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="categoryList"></tbody>
-                </table>
-            </div>
-
-            <!-- Supplier Tab -->
-            <div class="tab-pane fade" id="suppliers" role="tabpanel" aria-labelledby="suppliers-tab">
-                <h3>Supplier</h3>
-                <form id="supplierForm">
-                    <div class="mb-3">
-                        <label for="supplierName" class="form-label">Nama Supplier</label>
-                        <input type="text" id="supplierName" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="supplierPhone" class="form-label">No HP Supplier</label>
-                        <input type="text" id="supplierPhone" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="supplierCompany" class="form-label">Nama Perusahaan</label>
-                        <input type="text" id="supplierCompany" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="supplierAddress" class="form-label">Alamat Perusahaan</label>
-                        <input type="text" id="supplierAddress" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Tambah Supplier</button>
-                </form>
-                <h3 class="mt-4">Daftar Supplier</h3>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nama Supplier</th>
-                            <th>No HP</th>
-                            <th>Nama Perusahaan</th>
-                            <th>Alamat</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="supplierList"></tbody>
-                </table>
-            </div>
-
-            <!-- Produk Tab -->
-            <div class="tab-pane fade" id="products" role="tabpanel" aria-labelledby="products-tab">
-                <h3>Produk</h3>
-                <form id="productForm">
-                    <div class="mb-3">
-                        <label for="productName" class="form-label">Nama Produk</label>
-                        <input type="text" id="productName" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="productCategory" class="form-label">Kategori</label>
-                        <select id="productCategory" class="form-select" required></select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="productStock" class="form-label">Stok</label>
-                        <input type="number" id="productStock" class="form-control" min="1" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="productPrice" class="form-label">Harga</label>
-                        <input type="number" id="productPrice" class="form-control" min="1" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Tambah Produk</button>
-                </form>
-                <h3 class="mt-4">Daftar Produk</h3>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nama Produk</th>
-                            <th>Kategori</th>
-                            <th>Stok</th>
-                            <th>Harga</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productList"></tbody>
-                </table>
-            </div>
-
-            <!-- Pelanggan Tab -->
-            <div class="tab-pane fade" id="customers" role="tabpanel" aria-labelledby="customers-tab">
-                <h3>Pelanggan</h3>
-                <form id="customerForm">
-                    <div class="mb-3">
-                        <label for="customerName" class="form-label">Nama Pelanggan</label>
-                        <input type="text" id="customerName" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="customerPhone" class="form-label">No HP</label>
-                        <input type="text" id="customerPhone" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Tambah Pelanggan</button>
-                </form>
-                <h3 class="mt-4">Daftar Pelanggan</h3>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nama Pelanggan</th>
-                            <th>No HP</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="customerList"></tbody>
-                </table>
-            </div>
-
-            <!-- Laporan Tab -->
-            <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
-                <h3>Laporan</h3>
-                <form id="reportForm">
-                    <div class="mb-3">
-                        <label for="reportType" class="form-label">Jenis Laporan</label>
-                        <select id="reportType" class="form-select" required>
-                            <option value="daily">Harian</option>
-                            <option value="monthly">Bulanan</option>
-                            <option value="yearly">Tahunan</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Generate Laporan</button>
-                </form>
-                <h3 class="mt-4">Daftar Laporan</h3>
-                <div id="reportContent">
-                    <!-- Konten laporan akan muncul di sini -->
+    <div class="tab-content">
+        <!-- Tab: Pelanggan -->
+        <div class="tab-pane fade show active" id="pills-pelanggan" role="tabpanel" aria-labelledby="pills-pelanggan-tab">
+            <h3 class="mt-3">CRUD Pelanggan</h3>
+            <form id="pelangganForm">
+                <div class="mb-3">
+                    <label for="pelangganNama" class="form-label">Nama Pelanggan</label>
+                    <input type="text" id="pelangganNama" class="form-control" required>
                 </div>
-            </div>
-            <!-- Profil User Tab -->
-<div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-    <h3>Profil User</h3>
-    <form id="profileForm">
-        <div class="mb-3">
-            <label for="username" class="form-label">Nama Pengguna</label>
-            <input type="text" id="username" class="form-control" required>
+                <div class="mb-3">
+                    <label for="pelangganEmail" class="form-label">Email</label>
+                    <input type="email" id="pelangganEmail" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="pelangganNoHp" class="form-label">No. HP</label>
+                    <input type="text" id="pelangganNoHp" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="savePelangganBtn">Simpan Pelanggan</button>
+                <button type="button" class="btn btn-secondary" id="editPelangganBtn" style="display: none;">Edit Pelanggan</button>
+            </form>
+            <h4 class="mt-4">Daftar Pelanggan</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        <th>No. HP</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="pelangganList"></tbody>
+            </table>
         </div>
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" id="email" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Kata Sandi</label>
-            <input type="password" id="password" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Simpan Profil</button>
-    </form>
 
-    <h3 class="mt-4">Daftar Pengguna</h3>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nama Pengguna</th>
-                <th>Email</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody id="userList"></tbody>
-    </table>
-</div>
+        <!-- Tab: Produk -->
+        <div class="tab-pane fade" id="pills-produk" role="tabpanel" aria-labelledby="pills-produk-tab">
+            <h3 class="mt-3">CRUD Produk</h3>
+            <form id="produkForm">
+                <div class="mb-3">
+                    <label for="produkNama" class="form-label">Nama Produk</label>
+                    <input type="text" id="produkNama" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="produkHarga" class="form-label">Harga</label>
+                    <input type="number" id="produkHarga" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="produkStok" class="form-label">Stok</label>
+                    <input type="number" id="produkStok" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="saveProdukBtn">Simpan Produk</button>
+                <button type="button" class="btn btn-secondary" id="editProdukBtn" style="display: none;">Edit Produk</button>
+            </form>
+            <h4 class="mt-4">Daftar Produk</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama</th>
+                        <th>Harga</th>
+                        <th>Stok</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="produkList"></tbody>
+            </table>
+        </div>
 
-            
+        <!-- Tab: Kategori -->
+        <div class="tab-pane fade" id="pills-kategori" role="tabpanel" aria-labelledby="pills-kategori-tab">
+            <h3 class="mt-3">CRUD Kategori</h3>
+            <form id="kategoriForm">
+                <div class="mb-3">
+                    <label for="kategoriNama" class="form-label">Nama Kategori</label>
+                    <input type="text" id="kategoriNama" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="saveKategoriBtn">Simpan Kategori</button>
+                <button type="button" class="btn btn-secondary" id="editKategoriBtn" style="display: none;">Edit Kategori</button>
+            </form>
+            <h4 class="mt-4">Daftar Kategori</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="kategoriList"></tbody>
+            </table>
+        </div>
+
+        <!-- Tab: Suplier -->
+        <div class="tab-pane fade" id="pills-suplier" role="tabpanel" aria-labelledby="pills-suplier-tab">
+            <h3 class="mt-3">CRUD Suplier</h3>
+            <form id="suplierForm">
+                <div class="mb-3">
+                    <label for="suplierNama" class="form-label">Nama Suplier</label>
+                    <input type="text" id="suplierNama" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="suplierNoHp" class="form-label">No. HP</label>
+                    <input type="text" id="suplierNoHp" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="suplierAlamat" class="form-label">Alamat Perusahaan</label>
+                    <input type="text" id="suplierAlamat" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="saveSuplierBtn">Simpan Suplier</button>
+                <button type="button" class="btn btn-secondary" id="editSuplierBtn" style="display: none;">Edit Suplier</button>
+            </form>
+            <h4 class="mt-4">Daftar Suplier</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama</th>
+                        <th>No. HP</th>
+                        <th>Alamat</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="suplierList"></tbody>
+            </table>
+        </div>
+
+        <!-- Tab: Transaksi -->
+        <div class="tab-pane fade" id="pills-transaksi" role="tabpanel" aria-labelledby="pills-transaksi-tab">
+            <h3 class="mt-3">CRUD Transaksi</h3>
+            <form id="transaksiForm">
+                <div class="mb-3">
+                    <label for="transaksiPelanggan" class="form-label">Pelanggan</label>
+                    <select id="transaksiPelanggan" class="form-select" required></select>
+                </div>
+                <div class="mb-3">
+                    <label for="transaksiProduk" class="form-label">Produk</label>
+                    <select id="transaksiProduk" class="form-select" required></select>
+                </div>
+                <div class="mb-3">
+                    <label for="transaksiJumlah" class="form-label">Jumlah</label>
+                    <input type="number" id="transaksiJumlah" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="transaksiTotal" class="form-label">Total</label>
+                    <input type="number" id="transaksiTotal" class="form-control" disabled>
+                </div>
+                <button type="submit" class="btn btn-primary" id="saveTransaksiBtn">Simpan Transaksi</button>
+            </form>
+            <h4 class="mt-4">Daftar Transaksi</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Pelanggan</th>
+                        <th>Produk</th>
+                        <th>Jumlah</th>
+                        <th>Total</th>
+                        <th>Tanggal</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="transaksiList"></tbody>
+            </table>
+        </div>
+
+        <!-- Tab: Laporan -->
+        <div class="tab-pane fade" id="pills-laporan" role="tabpanel" aria-labelledby="pills-laporan-tab">
+            <h3 class="mt-3">Laporan</h3>
+            <p>Formulir laporan akan muncul di sini.</p>
+        </div>
+
+        <!-- Tab: Profil User -->
+        <div class="tab-pane fade" id="pills-profil" role="tabpanel" aria-labelledby="pills-profil-tab">
+            <h3 class="mt-3">Profil User</h3>
+            <form id="profileForm">
+                <div class="mb-3">
+                    <label for="profileUsername" class="form-label">Nama Pengguna</label>
+                    <input type="text" id="profileUsername" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="profileEmail" class="form-label">Email</label>
+                    <input type="email" id="profileEmail" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="profilePassword" class="form-label">Kata Sandi</label>
+                    <input type="password" id="profilePassword" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="saveProfileBtn">Simpan Profil</button>
+            </form>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="script.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
