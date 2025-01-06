@@ -68,59 +68,58 @@
             </div>
 
             <!-- Halaman Kategori -->
-            <div class="tab-pane fade" id="categories">
-                <h3>Tambah Kategori</h3>
-                <form id="categoryForm">
-                    <div class="mb-3">
-                        <label for="categoryName" class="form-label">Nama Kategori</label>
-                        <input type="text" id="categoryName" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Tambah Kategori</button>
-                </form>
+            <h3>Tambah/Edit Kategori</h3>
+<form id="categoryForm">
+    <input type="hidden" id="categoryId" value="">
+    <div class="mb-3">
+        <label for="categoryName" class="form-label">Nama Kategori</label>
+        <input type="text" id="categoryName" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Simpan</button>
+</form>
 
-                <h3 class="mt-4">Daftar Kategori</h3>
-                <ul id="categoryList" class="list-group"></ul>
-            </div>
+<h3 class="mt-4">Daftar Kategori</h3>
+<ul id="categoryList" class="list-group"></ul>
+
 
             <!-- Halaman Supplier -->
-            <div class="tab-pane fade" id="suppliers">
-                <h3>Tambah Supplier</h3>
-                <form id="supplierForm">
-                    <div class="mb-3">
-                        <label for="supplierName" class="form-label">Nama Supplier</label>
-                        <input type="text" id="supplierName" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="supplierPhone" class="form-label">No HP</label>
-                        <input type="text" id="supplierPhone" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="supplierCompany" class="form-label">Nama Perusahaan</label>
-                        <input type="text" id="supplierCompany" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="supplierAddress" class="form-label">Alamat Perusahaan</label>
-                        <textarea id="supplierAddress" class="form-control" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Tambah Supplier</button>
-                </form>
-
-                <h3 class="mt-4">Daftar Supplier</h3>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nama</th>
-                            <th>No HP</th>
-                            <th>Perusahaan</th>
-                            <th>Alamat</th>
-                        </tr>
-                    </thead>
-                    <tbody id="supplierList"></tbody>
-                </table>
-            </div>
-        </div>
+    <h3>Tambah/Edit Supplier</h3>
+<form id="supplierForm">
+    <input type="hidden" id="supplierId" value="">
+    <div class="mb-3">
+        <label for="supplierName" class="form-label">Nama Supplier</label>
+        <input type="text" id="supplierName" class="form-control" required>
     </div>
+    <div class="mb-3">
+        <label for="supplierPhone" class="form-label">No HP</label>
+        <input type="text" id="supplierPhone" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="supplierCompany" class="form-label">Nama Perusahaan</label>
+        <input type="text" id="supplierCompany" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="supplierAddress" class="form-label">Alamat Perusahaan</label>
+        <textarea id="supplierAddress" class="form-control" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Simpan</button>
+</form>
+
+<h3 class="mt-4">Daftar Supplier</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nama</th>
+            <th>No HP</th>
+            <th>Perusahaan</th>
+            <th>Alamat</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody id="supplierList"></tbody>
+</table>
+
 
     <script src="script.js"></script>
 </body>
