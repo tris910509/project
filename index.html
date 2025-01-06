@@ -100,7 +100,10 @@
         <h3>Transaksi</h3>
          <div class="tab-pane fade" id="transactions">
     <h3>Tambah Transaksi</h3>
+<div class="tab-pane fade" id="transactions">
+    <h3>Tambah/Edit Transaksi</h3>
     <form id="transactionForm">
+        <input type="hidden" id="transactionId" value="">
         <div class="mb-3">
             <label for="customerName" class="form-label">Nama Pelanggan</label>
             <input type="text" id="customerName" class="form-control" required>
@@ -128,10 +131,10 @@
                 <option value="Belum Lunas">Belum Lunas</option>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">Tambah Transaksi</button>
+        <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
     </form>
 
-    <h3 class="mt-4">Riwayat Transaksi</h3>
+    <h3 class="mt-4">Daftar Transaksi</h3>
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -142,10 +145,13 @@
                 <th>Total Harga</th>
                 <th>Metode Pembayaran</th>
                 <th>Status</th>
+                <th>Aksi</th>
             </tr>
         </thead>
         <tbody id="transactionList"></tbody>
     </table>
+</div>
+
     </div>
 </div>
 
