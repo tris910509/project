@@ -253,3 +253,100 @@ function updateTransactionProductDropdown() {
 updateTransactionProductDropdown();
 
 
+
+// Tambah/Edit Transaksi
+document.getElementById("transactionForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const transactionId = document.getElementById("transactionId").value;
+    const customerName = document.getElementById("customerName").value;
+    const productName = document.getElementById("transactionProduct").value;
+    const quantity = parseInt(document.getElementById("transactionQuantity").value);
+    const paymentMethod = document.getElementById("paymentMethod").value;
+    const paymentStatus = document.getElementById("paymentStatus").value;
+
+    // Validasi produk
+    const product = products.find((p) => p.name === productName);
+    if (!product) {
+        alert("Produk tidak valid!");
+        return;
+    }
+
+    const totalPrice = product.price * quantity;
+
+    if (transactionId) {
+        // Edit transaksi
+        const index = transactions.findIndex((t) => t.id === transactionId);
+        if (index !== -1) {
+            transactions[index] = { id: transactionId, customerName, productName, quantity, totalPrice, paymentMethod, paymentStatus };
+        }
+    } else {
+        // Tambah transaksi baru
+        const id = `T${transactions.length + 1}`;
+        transactions.push({ id, customerName, productName, quantity, totalPrice, paymentMethod, paymentStatus });
+    }
+
+    e.target.reset();
+    document.getElementById("transactionId").value = "";
+    updateTransactionList();
+});
+
+// Perbarui Daftar Transaksi
+function updateTransactionList() {
+    const transactionList = document.getElementById("transactionList");
+    transactionList.innerHTML = "";
+    transactions.forEach((transaction, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${transaction.id}</td>
+            <td>${transaction.customerName}</td>
+            <td>${transaction.productName}</td>
+            <td>${transaction.quantity}</td>
+            <td>Rp${transaction.totalPrice.toLocaleString()}</td>
+            <td>${transaction.paymentMethod}</td>
+            <td>${transaction.paymentStatus}</td>
+            <td>
+                <button class="btn btn-sm btn-warning" onclick="editTransaction(${index})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteTransaction(${index})">Hapus</button>
+            </td>
+        `;
+        transactionList.appendChild(row);
+    });
+}
+
+// Edit Transaksi
+function editTransaction(index) {
+    const transaction = transactions[index];
+    document.getElementById("transactionId").value = transaction.id;
+    document.getElementById("customerName").value = transaction.customerName;
+    document.getElementById("transactionProduct").value = transaction.productName;
+    document.getElementById("transactionQuantity").value = transaction.quantity;
+    document.getElementById("paymentMethod").value = transaction.paymentMethod;
+    document.getElementById("paymentStatus").value = transaction.paymentStatus;
+}
+
+// Hapus Transaksi
+function deleteTransaction(index) {
+    if (confirm("Apakah Anda yakin ingin menghapus transaksi ini?")) {
+        transactions.splice(index, 1);
+        updateTransactionList();
+    }
+}
+
+// Perbarui dropdown produk di transaksi
+function updateTransactionProductDropdown() {
+    const productDropdown = document.getElementById("transactionProduct");
+    productDropdown.innerHTML = "";
+    products.forEach((product) => {
+        const option = document.createElement("option");
+        option.value = product.name;
+        option.textContent = product.name;
+        productDropdown.appendChild(option);
+    });
+}
+
+// Perbarui dropdown saat halaman dimuat
+updateTransactionProductDropdown();
+
+
+
