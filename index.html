@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Kasir Lengkap</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
 </head>
 <body>
@@ -11,22 +13,52 @@
         <h1 class="text-center">Aplikasi Kasir Lengkap</h1>
 
         <!-- Menu Navigasi -->
-        <ul class="nav nav-tabs">
-            <li class="nav-item">
-                <a class="nav-link active" href="#products" data-bs-toggle="tab">Produk</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#categories" data-bs-toggle="tab">Kategori</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#suppliers" data-bs-toggle="tab">Supplier</a>
-            </li>
-            <li class="nav-item">
-    <a class="nav-link" href="#transactions" data-bs-toggle="tab">Transaksi</a>
-</li>
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Beranda</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab" aria-controls="categories" aria-selected="false">Kategori</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="suppliers-tab" data-bs-toggle="tab" data-bs-target="#suppliers" type="button" role="tab" aria-controls="suppliers" aria-selected="false">Supplier</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab" aria-controls="transactions" aria-selected="false">Transaksi</button>
+    </li>
+</ul>
 
-        </ul>
 
+<div class="tab-content" id="myTabContent">
+    <!-- Tab Beranda -->
+    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+        <h3>Beranda</h3>
+        <p>Selamat datang di aplikasi kasir.</p>
+    </div>
+
+    <!-- Tab Kategori -->
+    <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
+        <h3>Kategori</h3>
+        <!-- Tambahkan konten kategori di sini -->
+    </div>
+
+    <!-- Tab Supplier -->
+    <div class="tab-pane fade" id="suppliers" role="tabpanel" aria-labelledby="suppliers-tab">
+        <h3>Supplier</h3>
+        <!-- Tambahkan konten supplier di sini -->
+    </div>
+
+    <!-- Tab Transaksi -->
+    <div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
+        <h3>Transaksi</h3>
+        <!-- Tambahkan konten transaksi di sini -->
+    </div>
+</div>
+
+
+
+
+        
         <div class="tab-content mt-3">
             <!-- Halaman Produk -->
             <div class="tab-pane fade show active" id="products">
@@ -177,6 +209,18 @@
 
 
 
+            
+<script>
+    // Inisialisasi tab dengan Bootstrap (opsional jika semua sudah benar di HTML)
+    var triggerTabList = [].slice.call(document.querySelectorAll('#myTab button'));
+    triggerTabList.forEach(function (triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl);
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault();
+            tabTrigger.show();
+        });
+    });
+</script>
     <script src="script.js"></script>
 </body>
 </html>
