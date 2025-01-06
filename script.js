@@ -38,28 +38,61 @@ function updateProductList() {
 }
 
 // Tambah Kategori
+// Tambah/Edit Kategori
 document.getElementById("categoryForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    const name = document.getElementById("categoryName").value;
-    categories.push(name);
+    const categoryId = document.getElementById("categoryId").value;
+    const categoryName = document.getElementById("categoryName").value;
+
+    if (categoryId) {
+        // Edit kategori
+        categories[categoryId] = categoryName;
+    } else {
+        // Tambah kategori baru
+        categories.push(categoryName);
+    }
 
     e.target.reset();
+    document.getElementById("categoryId").value = "";
     updateCategoryList();
     updateProductCategoryDropdown();
 });
 
+// Menampilkan daftar kategori
 function updateCategoryList() {
     const categoryList = document.getElementById("categoryList");
     categoryList.innerHTML = "";
-    categories.forEach((category) => {
+    categories.forEach((category, index) => {
         const li = document.createElement("li");
-        li.className = "list-group-item";
-        li.textContent = category;
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+        li.innerHTML = `
+            ${category}
+            <div>
+                <button class="btn btn-sm btn-warning" onclick="editCategory(${index})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteCategory(${index})">Hapus</button>
+            </div>
+        `;
         categoryList.appendChild(li);
     });
 }
 
+// Edit kategori
+function editCategory(index) {
+    document.getElementById("categoryId").value = index;
+    document.getElementById("categoryName").value = categories[index];
+}
+
+// Hapus kategori
+function deleteCategory(index) {
+    if (confirm("Apakah Anda yakin ingin menghapus kategori ini?")) {
+        categories.splice(index, 1);
+        updateCategoryList();
+        updateProductCategoryDropdown();
+    }
+}
+
+// Perbarui dropdown kategori di produk
 function updateProductCategoryDropdown() {
     const categoryDropdown = document.getElementById("productCategory");
     categoryDropdown.innerHTML = "";
@@ -71,27 +104,38 @@ function updateProductCategoryDropdown() {
     });
 }
 
+
 // Tambah Supplier
+// Tambah/Edit Supplier
 document.getElementById("supplierForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    const id = `S${suppliers.length + 1}`;
+    const supplierId = document.getElementById("supplierId").value;
     const name = document.getElementById("supplierName").value;
     const phone = document.getElementById("supplierPhone").value;
     const company = document.getElementById("supplierCompany").value;
     const address = document.getElementById("supplierAddress").value;
 
-    suppliers.push({ id, name, phone, company, address });
+    if (supplierId) {
+        // Edit supplier
+        suppliers[supplierId] = { id: suppliers[supplierId].id, name, phone, company, address };
+    } else {
+        // Tambah supplier baru
+        const id = `S${suppliers.length + 1}`;
+        suppliers.push({ id, name, phone, company, address });
+    }
 
     e.target.reset();
+    document.getElementById("supplierId").value = "";
     updateSupplierList();
     updateProductSupplierDropdown();
 });
 
+// Menampilkan daftar supplier
 function updateSupplierList() {
     const supplierList = document.getElementById("supplierList");
     supplierList.innerHTML = "";
-    suppliers.forEach((supplier) => {
+    suppliers.forEach((supplier, index) => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${supplier.id}</td>
@@ -99,11 +143,34 @@ function updateSupplierList() {
             <td>${supplier.phone}</td>
             <td>${supplier.company}</td>
             <td>${supplier.address}</td>
+            <td>
+                <button class="btn btn-sm btn-warning" onclick="editSupplier(${index})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteSupplier(${index})">Hapus</button>
+            </td>
         `;
         supplierList.appendChild(row);
     });
 }
 
+// Edit supplier
+function editSupplier(index) {
+    document.getElementById("supplierId").value = index;
+    document.getElementById("supplierName").value = suppliers[index].name;
+    document.getElementById("supplierPhone").value = suppliers[index].phone;
+    document.getElementById("supplierCompany").value = suppliers[index].company;
+    document.getElementById("supplierAddress").value = suppliers[index].address;
+}
+
+// Hapus supplier
+function deleteSupplier(index) {
+    if (confirm("Apakah Anda yakin ingin menghapus supplier ini?")) {
+        suppliers.splice(index, 1);
+        updateSupplierList();
+        updateProductSupplierDropdown();
+    }
+}
+
+// Perbarui dropdown supplier di produk
 function updateProductSupplierDropdown() {
     const supplierDropdown = document.getElementById("productSupplier");
     supplierDropdown.innerHTML = "";
@@ -114,3 +181,4 @@ function updateProductSupplierDropdown() {
         supplierDropdown.appendChild(option);
     });
 }
+
