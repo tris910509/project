@@ -13,9 +13,10 @@
         <h1 class="text-center">Aplikasi Kasir Lengkap</h1>
 
         <!-- Menu Navigasi -->
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <!-- Navigasi Tab -->
+<ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Beranda</button>
+        <button class="nav-link" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Beranda</button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab" aria-controls="categories" aria-selected="false">Kategori</button>
@@ -24,9 +25,72 @@
         <button class="nav-link" id="suppliers-tab" data-bs-toggle="tab" data-bs-target="#suppliers" type="button" role="tab" aria-controls="suppliers" aria-selected="false">Supplier</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab" aria-controls="transactions" aria-selected="false">Transaksi</button>
+        <button class="nav-link active" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab" aria-controls="transactions" aria-selected="false">Transaksi</button>
     </li>
 </ul>
+
+<!-- Konten Tab Transaksi -->
+<div class="tab-pane fade show active" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
+    <h3>Transaksi</h3>
+    <!-- Konten Transaksi di sini -->
+    <form id="transactionForm">
+          <div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
+        <h3>Transaksi</h3>
+         <div class="tab-pane fade" id="transactions">
+    <h3>Tambah Transaksi</h3>
+<div class="tab-pane fade" id="transactions">
+    <h3>Tambah/Edit Transaksi</h3>
+    <form id="transactionForm">
+        <input type="hidden" id="transactionId" value="">
+        <div class="mb-3">
+            <label for="customerName" class="form-label">Nama Pelanggan</label>
+            <input type="text" id="customerName" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="transactionProduct" class="form-label">Produk</label>
+            <select id="transactionProduct" class="form-select" required></select>
+        </div>
+        <div class="mb-3">
+            <label for="transactionQuantity" class="form-label">Jumlah</label>
+            <input type="number" id="transactionQuantity" class="form-control" min="1" required>
+        </div>
+        <div class="mb-3">
+            <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
+            <select id="paymentMethod" class="form-select" required>
+                <option value="Cash">Cash</option>
+                <option value="Transfer">Transfer</option>
+                <option value="E-Wallet">E-Wallet</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="paymentStatus" class="form-label">Status Pembayaran</label>
+            <select id="paymentStatus" class="form-select" required>
+                <option value="Lunas">Lunas</option>
+                <option value="Belum Lunas">Belum Lunas</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
+    </form>
+    <h3 class="mt-4">Daftar Transaksi</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Pelanggan</th>
+                <th>Produk</th>
+                <th>Jumlah</th>
+                <th>Total Harga</th>
+                <th>Metode Pembayaran</th>
+                <th>Status</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="transactionList"></tbody>
+    </table>
+    </form>
+    
+</div>
+
 
 
 <div class="tab-content" id="myTabContent">
@@ -96,60 +160,9 @@
     </div>
 
     <!-- Tab Transaksi -->
-    <div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
-        <h3>Transaksi</h3>
-         <div class="tab-pane fade" id="transactions">
-    <h3>Tambah Transaksi</h3>
-<div class="tab-pane fade" id="transactions">
-    <h3>Tambah/Edit Transaksi</h3>
-    <form id="transactionForm">
-        <input type="hidden" id="transactionId" value="">
-        <div class="mb-3">
-            <label for="customerName" class="form-label">Nama Pelanggan</label>
-            <input type="text" id="customerName" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="transactionProduct" class="form-label">Produk</label>
-            <select id="transactionProduct" class="form-select" required></select>
-        </div>
-        <div class="mb-3">
-            <label for="transactionQuantity" class="form-label">Jumlah</label>
-            <input type="number" id="transactionQuantity" class="form-control" min="1" required>
-        </div>
-        <div class="mb-3">
-            <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
-            <select id="paymentMethod" class="form-select" required>
-                <option value="Cash">Cash</option>
-                <option value="Transfer">Transfer</option>
-                <option value="E-Wallet">E-Wallet</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="paymentStatus" class="form-label">Status Pembayaran</label>
-            <select id="paymentStatus" class="form-select" required>
-                <option value="Lunas">Lunas</option>
-                <option value="Belum Lunas">Belum Lunas</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
-    </form>
+  
 
-    <h3 class="mt-4">Daftar Transaksi</h3>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Pelanggan</th>
-                <th>Produk</th>
-                <th>Jumlah</th>
-                <th>Total Harga</th>
-                <th>Metode Pembayaran</th>
-                <th>Status</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody id="transactionList"></tbody>
-    </table>
+    
 </div>
 
     </div>
