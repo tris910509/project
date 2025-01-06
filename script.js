@@ -1,121 +1,11 @@
-// Inisialisasi Data
+// Data Array untuk setiap entitas
 let pelanggan = [];
 let produk = [];
 let kategori = [];
 let suplier = [];
 let transaksi = [];
-let users = [];
 
-let currentEditingIndex = null;
-
-// Fungsi CRUD untuk Pelanggan
-document.getElementById('pelangganForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const nama = document.getElementById('pelangganNama').value;
-    const email = document.getElementById('pelangganEmail').value;
-    const noHp = document.getElementById('pelangganNoHp').value;
-
-    if (currentEditingIndex !== null) {
-        pelanggan[currentEditingIndex] = { id: `P${currentEditingIndex + 1}`, nama, email, noHp };
-        currentEditingIndex = null;
-        document.getElementById('savePelangganBtn').style.display = 'block';
-        document.getElementById('editPelangganBtn').style.display = 'none';
-    } else {
-        const id = `P${pelanggan.length + 1}`;
-        pelanggan.push({ id, nama, email, noHp });
-    }
-
-    updateTable('pelangganList', pelanggan);
-    e.target.reset();
-});
-
-// Fungsi CRUD untuk Produk
-document.getElementById('produkForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const nama = document.getElementById('produkNama').value;
-    const harga = document.getElementById('produkHarga').value;
-    const stok = document.getElementById('produkStok').value;
-
-    if (currentEditingIndex !== null) {
-        produk[currentEditingIndex] = { id: `PR${currentEditingIndex + 1}`, nama, harga, stok };
-        currentEditingIndex = null;
-        document.getElementById('saveProdukBtn').style.display = 'block';
-        document.getElementById('editProdukBtn').style.display = 'none';
-    } else {
-        const id = `PR${produk.length + 1}`;
-        produk.push({ id, nama, harga, stok });
-    }
-
-    updateTable('produkList', produk);
-    e.target.reset();
-});
-
-// Fungsi CRUD untuk Kategori
-document.getElementById('kategoriForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const nama = document.getElementById('kategoriNama').value;
-
-    if (currentEditingIndex !== null) {
-        kategori[currentEditingIndex] = { id: `K${currentEditingIndex + 1}`, nama };
-        currentEditingIndex = null;
-        document.getElementById('saveKategoriBtn').style.display = 'block';
-        document.getElementById('editKategoriBtn').style.display = 'none';
-    } else {
-        const id = `K${kategori.length + 1}`;
-        kategori.push({ id, nama });
-    }
-
-    updateTable('kategoriList', kategori);
-    e.target.reset();
-});
-
-// Fungsi CRUD untuk Suplier
-document.getElementById('suplierForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const nama = document.getElementById('suplierNama').value;
-    const noHp = document.getElementById('suplierNoHp').value;
-    const alamat = document.getElementById('suplierAlamat').value;
-
-    if (currentEditingIndex !== null) {
-        suplier[currentEditingIndex] = { id: `S${currentEditingIndex + 1}`, nama, noHp, alamat };
-        currentEditingIndex = null;
-        document.getElementById('saveSuplierBtn').style.display = 'block';
-        document.getElementById('editSuplierBtn').style.display = 'none';
-    } else {
-        const id = `S${suplier.length + 1}`;
-        suplier.push({ id, nama, noHp, alamat });
-    }
-
-    updateTable('suplierList', suplier);
-    e.target.reset();
-});
-
-// Fungsi CRUD untuk Transaksi
-document.getElementById('transaksiForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const pelanggan = document.getElementById('transaksiPelanggan').value;
-    const produk = document.getElementById('transaksiProduk').value;
-    const jumlah = document.getElementById('transaksiJumlah').value;
-    const total = document.getElementById('transaksiTotal').value;
-
-    const id = `T${transaksi.length + 1}`;
-    transaksi.push({ id, pelanggan, produk, jumlah, total, tanggal: new Date().toLocaleDateString() });
-    updateTable('transaksiList', transaksi);
-    e.target.reset();
-});
-
-// Fungsi CRUD untuk Profil User
-document.getElementById('profileForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const username = document.getElementById('profileUsername').value;
-    const email = document.getElementById('profileEmail').value;
-    const password = document.getElementById('profilePassword').value;
-
-    // Tambahkan logika penyimpanan profil user
-    console.log('Profil disimpan:', { username, email, password });
-});
-
-// Fungsi untuk update table
+// Fungsi untuk menampilkan data dalam tabel
 function updateTable(elementId, data) {
     const tableBody = document.getElementById(elementId);
     tableBody.innerHTML = '';
@@ -130,51 +20,15 @@ function updateTable(elementId, data) {
         }
         row.innerHTML += `
             <td>
-                <button class="btn btn-warning btn-sm" onclick="editRow(${elementId}, ${index})">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteRow(${elementId}, ${index})">Hapus</button>
+                <button class="btn btn-warning btn-sm" onclick="editRow('${elementId}', ${index})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteRow('${elementId}', ${index})">Hapus</button>
             </td>
         `;
         tableBody.appendChild(row);
     });
 }
 
-// Fungsi untuk edit row
-function editRow(tableId, index) {
-    currentEditingIndex = index;
-    const data = eval(tableId); // Get the data array from global scope
-    const item = data[index];
-
-    if (tableId === 'pelangganList') {
-        document.getElementById('pelangganNama').value = item.nama;
-        document.getElementById('pelangganEmail').value = item.email;
-        document.getElementById('pelangganNoHp').value = item.noHp;
-        document.getElementById('savePelangganBtn').style.display = 'none';
-        document.getElementById('editPelangganBtn').style.display = 'block';
-    }
-    // Add similar logic for other tables
-}
-
-// Fungsi untuk delete row
-function deleteRow(tableId, index) {
-    const data = eval(tableId); // Get the data array from global scope
-    data.splice(index, 1);
-    updateTable(tableId, data);
-}
-
-// Fungsi untuk menambahkan item ke dropdown Transaksi
-function populateDropdown() {
-    const pelangganSelect = document.getElementById('transaksiPelanggan');
-    const produkSelect = document.getElementById('transaksiProduk');
-    
-    pelangganSelect.innerHTML = pelanggan.map(p => `<option value="${p.id}">${p.nama}</option>`).join('');
-    produkSelect.innerHTML = produk.map(p => `<option value="${p.id}">${p.nama}</option>`).join('');
-}
-
-// Panggil fungsi untuk populate dropdown
-populateDropdown();
-
-
-// Fungsi edit untuk setiap row pada tabel
+// Fungsi edit row
 function editRow(tableId, index) {
     currentEditingIndex = index;
     const data = eval(tableId); // Get the data array from global scope
@@ -203,7 +57,6 @@ function editRow(tableId, index) {
         document.getElementById('saveSuplierBtn').style.display = 'none';
         document.getElementById('editSuplierBtn').style.display = 'block';
     } else if (tableId === 'transaksiList') {
-        // Populate form fields for transaksi
         document.getElementById('transaksiPelanggan').value = item.pelanggan;
         document.getElementById('transaksiProduk').value = item.produk;
         document.getElementById('transaksiJumlah').value = item.jumlah;
@@ -212,39 +65,11 @@ function editRow(tableId, index) {
     }
 }
 
-// Fungsi delete untuk setiap row pada tabel
+// Fungsi delete row
 function deleteRow(tableId, index) {
     const data = eval(tableId); // Get the data array from global scope
     data.splice(index, 1);
     updateTable(tableId, data);
-}
-document.getElementById('transaksiJumlah').addEventListener('input', function() {
-    const hargaProduk = produk.find(p => p.id === document.getElementById('transaksiProduk').value).harga;
-    const jumlah = parseInt(this.value, 10);
-    const total = hargaProduk * jumlah;
-    document.getElementById('transaksiTotal').value = total;
-});
-// Fungsi untuk update tabel
-function updateTable(elementId, data) {
-    const tableBody = document.getElementById(elementId);
-    tableBody.innerHTML = '';
-    data.forEach((item, index) => {
-        const row = document.createElement('tr');
-        for (const key in item) {
-            if (item.hasOwnProperty(key)) {
-                const cell = document.createElement('td');
-                cell.innerText = item[key];
-                row.appendChild(cell);
-            }
-        }
-        row.innerHTML += `
-            <td>
-                <button class="btn btn-warning btn-sm" onclick="editRow('${elementId}', ${index})">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteRow('${elementId}', ${index})">Hapus</button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
 }
 
 // Fungsi untuk menambahkan item ke dropdown Transaksi
@@ -258,13 +83,95 @@ function populateDropdown() {
 
 // Panggil fungsi untuk populate dropdown
 populateDropdown();
-document.getElementById('profileForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const username = document.getElementById('profileUsername').value;
-    const email = document.getElementById('profileEmail').value;
-    const password = document.getElementById('profilePassword').value;
 
-    // Simulasi menyimpan profil user
-    console.log('Profil disimpan:', { username, email, password });
+// Fungsi untuk menyimpan pelanggan
+document.getElementById('savePelangganBtn').addEventListener('click', () => {
+    const nama = document.getElementById('pelangganNama').value;
+    const email = document.getElementById('pelangganEmail').value;
+    const noHp = document.getElementById('pelangganNoHp').value;
+    
+    if (nama && email && noHp) {
+        const newPelanggan = { id: pelanggan.length + 1, nama, email, noHp };
+        pelanggan.push(newPelanggan);
+        updateTable('pelangganList', pelanggan);
+        clearForm('pelangganForm');
+    } else {
+        alert('Harap isi semua field!');
+    }
 });
 
+// Fungsi untuk menyimpan produk
+document.getElementById('saveProdukBtn').addEventListener('click', () => {
+    const nama = document.getElementById('produkNama').value;
+    const harga = document.getElementById('produkHarga').value;
+    const stok = document.getElementById('produkStok').value;
+    
+    if (nama && harga && stok) {
+        const newProduk = { id: produk.length + 1, nama, harga, stok };
+        produk.push(newProduk);
+        updateTable('produkList', produk);
+        clearForm('produkForm');
+    } else {
+        alert('Harap isi semua field!');
+    }
+});
+
+// Fungsi untuk menyimpan kategori
+document.getElementById('saveKategoriBtn').addEventListener('click', () => {
+    const nama = document.getElementById('kategoriNama').value;
+    
+    if (nama) {
+        const newKategori = { id: kategori.length + 1, nama };
+        kategori.push(newKategori);
+        updateTable('kategoriList', kategori);
+        clearForm('kategoriForm');
+    } else {
+        alert('Harap isi field kategori!');
+    }
+});
+
+// Fungsi untuk menyimpan suplier
+document.getElementById('saveSuplierBtn').addEventListener('click', () => {
+    const nama = document.getElementById('suplierNama').value;
+    const noHp = document.getElementById('suplierNoHp').value;
+    const alamat = document.getElementById('suplierAlamat').value;
+    
+    if (nama && noHp && alamat) {
+        const newSuplier = { id: suplier.length + 1, nama, noHp, alamat };
+        suplier.push(newSuplier);
+        updateTable('suplierList', suplier);
+        clearForm('suplierForm');
+    } else {
+        alert('Harap isi semua field!');
+    }
+});
+
+// Fungsi untuk menyimpan transaksi
+document.getElementById('saveTransaksiBtn').addEventListener('click', () => {
+    const pelangganId = document.getElementById('transaksiPelanggan').value;
+    const produkId = document.getElementById('transaksiProduk').value;
+    const jumlah = document.getElementById('transaksiJumlah').value;
+    const total = document.getElementById('transaksiTotal').value;
+    
+    if (pelangganId && produkId && jumlah && total) {
+        const pelanggan = pelanggan.find(p => p.id === parseInt(pelangganId));
+        const produk = produk.find(p => p.id === parseInt(produkId));
+        const newTransaksi = {
+            id: transaksi.length + 1,
+            pelanggan: pelanggan.nama,
+            produk: produk.nama,
+            jumlah,
+            total,
+        };
+        transaksi.push(newTransaksi);
+        updateTable('transaksiList', transaksi);
+        clearForm('transaksiForm');
+    } else {
+        alert('Harap isi semua field!');
+    }
+});
+
+// Fungsi untuk membersihkan form setelah submit
+function clearForm(formId) {
+    document.getElementById(formId).reset();
+}
