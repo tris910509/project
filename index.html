@@ -3,42 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD Kasir</title>
+    <title>Sistem Kasir</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="script.js"></script>
+    <style>
+        .tab-content { margin-top: 20px; }
+        .form-control, .btn { margin-bottom: 10px; }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <ul class="nav nav-tabs">
+    <div class="container">
+        <h2 class="mt-4">Sistem Kasir</h2>
+        <ul class="nav nav-tabs" id="crudTabs">
             <li class="nav-item">
-                <a class="nav-link active" id="pelanggan-tab" href="#pelanggan" data-toggle="tab">Pelanggan</a>
+                <a class="nav-link active" id="pelanggan-tab" data-toggle="tab" href="#pelanggan">Pelanggan</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="produk-tab" href="#produk" data-toggle="tab">Produk</a>
+                <a class="nav-link" id="produk-tab" data-toggle="tab" href="#produk">Produk</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="kategori-tab" href="#kategori" data-toggle="tab">Kategori</a>
+                <a class="nav-link" id="kategori-tab" data-toggle="tab" href="#kategori">Kategori</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="suplier-tab" href="#suplier" data-toggle="tab">Suplier</a>
+                <a class="nav-link" id="suplier-tab" data-toggle="tab" href="#suplier">Suplier</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="transaksi-tab" href="#transaksi" data-toggle="tab">Transaksi</a>
+                <a class="nav-link" id="transaksi-tab" data-toggle="tab" href="#transaksi">Transaksi</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="laporan-tab" href="#laporan" data-toggle="tab">Laporan</a>
+                <a class="nav-link" id="laporan-tab" data-toggle="tab" href="#laporan">Laporan</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="profil-tab" href="#profil" data-toggle="tab">Profil</a>
+                <a class="nav-link" id="profil-tab" data-toggle="tab" href="#profil">Profil</a>
             </li>
         </ul>
-
         <div class="tab-content">
-            <!-- Form Pelanggan -->
-            <div class="tab-pane active" id="pelanggan">
+            <div class="tab-pane fade show active" id="pelanggan">
                 <h3 class="mt-4">Data Pelanggan</h3>
                 <form id="pelangganForm">
                     <div class="form-group">
@@ -71,9 +72,9 @@
                     <tbody id="pelangganList"></tbody>
                 </table>
             </div>
-
+            
             <!-- Form Produk -->
-            <div class="tab-pane" id="produk">
+            <div class="tab-pane fade" id="produk">
                 <h3 class="mt-4">Data Produk</h3>
                 <form id="produkForm">
                     <div class="form-group">
@@ -81,12 +82,16 @@
                         <input type="text" class="form-control" id="produkNama" required>
                     </div>
                     <div class="form-group">
-                        <label for="produkHarga">Harga</label>
-                        <input type="number" class="form-control" id="produkHarga" required>
+                        <label for="produkKategori">Kategori</label>
+                        <select class="form-control" id="produkKategori"></select>
                     </div>
                     <div class="form-group">
                         <label for="produkStok">Stok</label>
                         <input type="number" class="form-control" id="produkStok" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="produkHarga">Harga</label>
+                        <input type="number" class="form-control" id="produkHarga" required>
                     </div>
                     <button type="button" class="btn btn-primary" id="saveProdukBtn">Simpan</button>
                     <button type="button" class="btn btn-warning" id="editProdukBtn" style="display: none;">Edit</button>
@@ -98,17 +103,18 @@
                         <tr>
                             <th>ID</th>
                             <th>Nama</th>
-                            <th>Harga</th>
+                            <th>Kategori</th>
                             <th>Stok</th>
+                            <th>Harga</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="produkList"></tbody>
                 </table>
             </div>
-
+            
             <!-- Form Kategori -->
-            <div class="tab-pane" id="kategori">
+            <div class="tab-pane fade" id="kategori">
                 <h3 class="mt-4">Data Kategori</h3>
                 <form id="kategoriForm">
                     <div class="form-group">
@@ -131,9 +137,9 @@
                     <tbody id="kategoriList"></tbody>
                 </table>
             </div>
-
+            
             <!-- Form Suplier -->
-            <div class="tab-pane" id="suplier">
+            <div class="tab-pane fade" id="suplier">
                 <h3 class="mt-4">Data Suplier</h3>
                 <form id="suplierForm">
                     <div class="form-group">
@@ -145,8 +151,12 @@
                         <input type="text" class="form-control" id="suplierNoHp" required>
                     </div>
                     <div class="form-group">
-                        <label for="suplierAlamat">Alamat</label>
-                        <textarea class="form-control" id="suplierAlamat" required></textarea>
+                        <label for="suplierPerusahaan">Nama Perusahaan</label>
+                        <input type="text" class="form-control" id="suplierPerusahaan" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="suplierAlamat">Alamat Perusahaan</label>
+                        <input type="text" class="form-control" id="suplierAlamat" required>
                     </div>
                     <button type="button" class="btn btn-primary" id="saveSuplierBtn">Simpan</button>
                     <button type="button" class="btn btn-warning" id="editSuplierBtn" style="display: none;">Edit</button>
@@ -159,7 +169,8 @@
                             <th>ID</th>
                             <th>Nama Suplier</th>
                             <th>No HP</th>
-                            <th>Alamat</th>
+                            <th>Nama Perusahaan</th>
+                            <th>Alamat Perusahaan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -168,24 +179,20 @@
             </div>
 
             <!-- Form Transaksi -->
-            <div class="tab-pane" id="transaksi">
-                <h3 class="mt-4">Data Transaksi</h3>
+            <div class="tab-pane fade" id="transaksi">
+                <h3 class="mt-4">Transaksi</h3>
                 <form id="transaksiForm">
                     <div class="form-group">
                         <label for="transaksiPelanggan">Pelanggan</label>
-                        <select class="form-control" id="transaksiPelanggan" required></select>
+                        <select class="form-control" id="transaksiPelanggan"></select>
                     </div>
                     <div class="form-group">
                         <label for="transaksiProduk">Produk</label>
-                        <select class="form-control" id="transaksiProduk" required></select>
+                        <select class="form-control" id="transaksiProduk"></select>
                     </div>
                     <div class="form-group">
                         <label for="transaksiJumlah">Jumlah</label>
                         <input type="number" class="form-control" id="transaksiJumlah" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="transaksiTotal">Total</label>
-                        <input type="number" class="form-control" id="transaksiTotal" readonly>
                     </div>
                     <button type="button" class="btn btn-primary" id="saveTransaksiBtn">Simpan</button>
                 </form>
@@ -207,14 +214,14 @@
             </div>
 
             <!-- Form Laporan -->
-            <div class="tab-pane" id="laporan">
-                <h3 class="mt-4">Laporan Transaksi</h3>
-                <p>Tampilkan laporan transaksi di sini.</p>
+            <div class="tab-pane fade" id="laporan">
+                <h3 class="mt-4">Laporan</h3>
+                <p>Laporan akan muncul di sini...</p>
             </div>
 
-            <!-- Profil User -->
-            <div class="tab-pane" id="profil">
-                <h3 class="mt-4">Profil User</h3>
+            <!-- Form Profil -->
+            <div class="tab-pane fade" id="profil">
+                <h3 class="mt-4">Profil</h3>
                 <form id="profilForm">
                     <div class="form-group">
                         <label for="profilNama">Nama</label>
