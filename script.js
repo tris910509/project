@@ -323,3 +323,54 @@ function updateTransactionList() {
 }
 
 
+
+let users = [];
+
+document.getElementById('profileForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    const id = `U${users.length + 1}`;
+    users.push({ id, username, email, password });
+
+    updateUserList();
+
+    e.target.reset();
+});
+
+function updateUserList() {
+    const userList = document.getElementById('userList');
+    userList.innerHTML = '';
+    users.forEach((user, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.id}</td>
+            <td>${user.username}</td>
+            <td>${user.email}</td>
+            <td>
+                <button class="btn btn-sm btn-warning" onclick="editUser(${index})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteUser(${index})">Hapus</button>
+            </td>
+        `;
+        userList.appendChild(row);
+    });
+}
+
+function editUser(index) {
+    const user = users[index];
+    document.getElementById('username').value = user.username;
+    document.getElementById('email').value = user.email;
+    document.getElementById('password').value = user.password;
+}
+
+function deleteUser(index) {
+    if (confirm('Apakah Anda yakin ingin menghapus pengguna ini?')) {
+        users.splice(index, 1);
+        updateUserList();
+    }
+}
+
+
