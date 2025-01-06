@@ -1,80 +1,115 @@
 let products = [];
-let transactions = [];
+let categories = [];
+let suppliers = [];
 
+// Tambah Produk
 document.getElementById("productForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    // Ambil data produk
+    const id = `P${products.length + 1}`;
     const name = document.getElementById("productName").value;
-    const category = document.getElementById("category").value;
-    const supplier = document.getElementById("supplier").value;
-    const price = parseFloat(document.getElementById("price").value);
+    const category = document.getElementById("productCategory").value;
+    const supplier = document.getElementById("productSupplier").value;
+    const stock = parseInt(document.getElementById("productStock").value);
+    const price = parseFloat(document.getElementById("productPrice").value);
 
-    // Tambahkan ke daftar produk
-    products.push({ name, category, supplier, price });
+    products.push({ id, name, category, supplier, stock, price });
 
-    // Reset form
     e.target.reset();
     updateProductList();
-    updateProductDropdown();
 });
 
 function updateProductList() {
     const productList = document.getElementById("productList");
     productList.innerHTML = "";
-    products.forEach((product, index) => {
+    products.forEach((product) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${product.id}</td>
+            <td>${product.name}</td>
+            <td>${product.category}</td>
+            <td>${product.supplier}</td>
+            <td>${product.stock}</td>
+            <td>Rp${product.price}</td>
+        `;
+        productList.appendChild(row);
+    });
+}
+
+// Tambah Kategori
+document.getElementById("categoryForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const name = document.getElementById("categoryName").value;
+    categories.push(name);
+
+    e.target.reset();
+    updateCategoryList();
+    updateProductDropdown();
+});
+
+function updateCategoryList() {
+    const categoryList = document.getElementById("categoryList");
+    categoryList.innerHTML = "";
+    categories.forEach((category) => {
         const li = document.createElement("li");
         li.className = "list-group-item";
-        li.textContent = `${product.name} - ${product.category} - Rp${product.price}`;
-        productList.appendChild(li);
+        li.textContent = category;
+        categoryList.appendChild(li);
     });
 }
 
 function updateProductDropdown() {
-    const productDropdown = document.getElementById("selectedProduct");
-    productDropdown.innerHTML = "";
-    products.forEach((product, index) => {
+    const categoryDropdown = document.getElementById("productCategory");
+    categoryDropdown.innerHTML = "";
+    categories.forEach((category) => {
         const option = document.createElement("option");
-        option.value = index;
-        option.textContent = product.name;
-        productDropdown.appendChild(option);
+        option.value = category;
+        option.textContent = category;
+        categoryDropdown.appendChild(option);
     });
 }
 
-document.getElementById("transactionForm").addEventListener("submit", function (e) {
+// Tambah Supplier
+document.getElementById("supplierForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    // Ambil data transaksi
-    const customerName = document.getElementById("customerName").value;
-    const productIndex = parseInt(document.getElementById("selectedProduct").value);
-    const quantity = parseInt(document.getElementById("quantity").value);
-    const paymentMethod = document.getElementById("paymentMethod").value;
+    const id = `S${suppliers.length + 1}`;
+    const name = document.getElementById("supplierName").value;
+    const phone = document.getElementById("supplierPhone").value;
+    const company = document.getElementById("supplierCompany").value;
+    const address = document.getElementById("supplierAddress").value;
 
-    const product = products[productIndex];
-    const total = product.price * quantity;
-    const status = total > 0 ? "Lunas" : "Belum Lunas";
+    suppliers.push({ id, name, phone, company, address });
 
-    // Tambahkan ke daftar transaksi
-    transactions.push({ customerName, product: product.name, quantity, total, paymentMethod, status });
-
-    // Reset form
     e.target.reset();
-    updateTransactionReport();
+    updateSupplierList();
+    updateProductSupplierDropdown();
 });
 
-function updateTransactionReport() {
-    const transactionReport = document.getElementById("transactionReport");
-    transactionReport.innerHTML = "";
-    transactions.forEach((transaction) => {
+function updateSupplierList() {
+    const supplierList = document.getElementById("supplierList");
+    supplierList.innerHTML = "";
+    suppliers.forEach((supplier) => {
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td>${transaction.customerName}</td>
-            <td>${transaction.product}</td>
-            <td>${transaction.quantity}</td>
-            <td>Rp${transaction.total}</td>
-            <td>${transaction.paymentMethod}</td>
-            <td>${transaction.status}</td>
+            <td>${supplier.id}</td>
+            <td>${supplier.name}</td>
+            <td>${supplier.phone}</td>
+            <td>${supplier.company}</td>
+            <td>${supplier.address}</td>
         `;
-        transactionReport.appendChild(row);
+        supplierList.appendChild(row);
+    });
+}
+
+function updateProductSupplierDropdown() {
+    const supplierDropdown = document.getElementById("productSupplier");
+    supplierDropdown.innerHTML = "";
+    suppliers.forEach((supplier) => {
+        const option = document.createElement("option");
+        option.value = supplier.name;
+        option.textContent = supplier.name;
+        supplierDropdown.appendChild(option);
     });
 }
