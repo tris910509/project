@@ -185,74 +185,10 @@ function updateProductSupplierDropdown() {
 
 
 // Tambah Transaksi Baru
-document.getElementById("transactionForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const id = `T${transactions.length + 1}`;
-    const customerName = document.getElementById("customerName").value;
-    const productName = document.getElementById("transactionProduct").value;
-    const quantity = parseInt(document.getElementById("transactionQuantity").value);
-    const paymentMethod = document.getElementById("paymentMethod").value;
-    const paymentStatus = document.getElementById("paymentStatus").value;
-
-    // Cari produk untuk mendapatkan harga
-    const product = products.find((p) => p.name === productName);
-    if (!product) {
-        alert("Produk tidak valid!");
-        return;
-    }
-    const totalPrice = product.price * quantity;
-
-    // Kurangi stok produk
-    if (product.stock < quantity) {
-        alert("Stok tidak mencukupi!");
-        return;
-    }
-    product.stock -= quantity;
-    updateProductList();
-
-    // Simpan transaksi
-    transactions.push({ id, customerName, productName, quantity, totalPrice, paymentMethod, paymentStatus });
-
-    e.target.reset();
-    updateTransactionList();
-});
-
-// Perbarui daftar transaksi
-function updateTransactionList() {
-    const transactionList = document.getElementById("transactionList");
-    transactionList.innerHTML = "";
-    transactions.forEach((transaction) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${transaction.id}</td>
-            <td>${transaction.customerName}</td>
-            <td>${transaction.productName}</td>
-            <td>${transaction.quantity}</td>
-            <td>Rp${transaction.totalPrice}</td>
-            <td>${transaction.paymentMethod}</td>
-            <td>${transaction.paymentStatus}</td>
-        `;
-        transactionList.appendChild(row);
-    });
-}
-
-// Perbarui dropdown produk di transaksi
-function updateTransactionProductDropdown() {
-    const productDropdown = document.getElementById("transactionProduct");
-    productDropdown.innerHTML = "";
-    products.forEach((product) => {
-        const option = document.createElement("option");
-        option.value = product.name;
-        option.textContent = product.name;
-        productDropdown.appendChild(option);
-    });
-}
-
-// Perbarui dropdown saat halaman dimuat
-updateTransactionProductDropdown();
 
 
+// Variabel transaksi
+let transactions = [];
 
 // Tambah/Edit Transaksi
 document.getElementById("transactionForm").addEventListener("submit", function (e) {
@@ -265,10 +201,16 @@ document.getElementById("transactionForm").addEventListener("submit", function (
     const paymentMethod = document.getElementById("paymentMethod").value;
     const paymentStatus = document.getElementById("paymentStatus").value;
 
-    // Validasi produk
+    // Cari produk berdasarkan nama
     const product = products.find((p) => p.name === productName);
     if (!product) {
         alert("Produk tidak valid!");
+        return;
+    }
+
+    // Validasi stok produk
+    if (product.stock < quantity) {
+        alert("Stok produk tidak mencukupi!");
         return;
     }
 
@@ -284,14 +226,18 @@ document.getElementById("transactionForm").addEventListener("submit", function (
         // Tambah transaksi baru
         const id = `T${transactions.length + 1}`;
         transactions.push({ id, customerName, productName, quantity, totalPrice, paymentMethod, paymentStatus });
+
+        // Kurangi stok produk
+        product.stock -= quantity;
+        updateTransactionProductDropdown(); // Perbarui dropdown produk
     }
 
-    e.target.reset();
-    document.getElementById("transactionId").value = "";
-    updateTransactionList();
+    e.target.reset(); // Reset form
+    document.getElementById("transactionId").value = ""; // Hapus ID
+    updateTransactionList(); // Perbarui daftar transaksi
 });
 
-// Perbarui Daftar Transaksi
+// Perbarui daftar transaksi
 function updateTransactionList() {
     const transactionList = document.getElementById("transactionList");
     transactionList.innerHTML = "";
@@ -345,8 +291,6 @@ function updateTransactionProductDropdown() {
     });
 }
 
-// Perbarui dropdown saat halaman dimuat
+// Perbarui dropdown produk saat halaman dimuat
 updateTransactionProductDropdown();
-
-
 
