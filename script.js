@@ -1,15 +1,52 @@
-// Contoh data pengguna dengan role admin dan user
-const users = [
+// Data pengguna
+const users = JSON.parse(localStorage.getItem('users')) || [
     { id: 1, username: 'admin', password: 'admin123', email: 'admin@example.com', role: 'admin' },
     { id: 2, username: 'user1', password: 'user123', email: 'user1@example.com', role: 'user' }
 ];
+let currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
+// Cek apakah user sudah login
+function checkAuth() {
+    if (!currentUser) {
+        window.location.href = 'login.html'; // Redirect ke login jika tidak login
+    } else {
+        document.getElementById('logoutLink').addEventListener('click', () => {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html'; // Logout dan redirect ke login
+        });
 
-// Data pengguna (misalnya disimpan di localStorage untuk demo)
-const users = JSON.parse(localStorage.getItem('users')) || [];
-let currentUser = null;
+        if (currentUser.role === 'admin') {
+            loadAdminContent();
+        } else if (currentUser.role === 'user') {
+            loadUserContent();
+        }
+    }
+}
 
-// Fungsi untuk memvalidasi login
+// Load konten untuk admin
+function loadAdminContent() {
+    document.getElementById('content').innerHTML = `
+        <h3>Admin Dashboard</h3>
+        <a href="pelanggan.html" class="nav-link">Kelola Pelanggan</a>
+        <a href="kategori.html" class="nav-link">Kelola Kategori</a>
+        <a href="produk.html" class="nav-link">Kelola Produk</a>
+        <a href="transaksi.html" class="nav-link">Kelola Transaksi</a>
+        <a href="laporan.html" class="nav-link">Lihat Laporan</a>
+        <a href="profil.html" class="nav-link">Profil</a>
+    `;
+}
+
+// Load konten untuk user
+function loadUserContent() {
+    document.getElementById('content').innerHTML = `
+        <h3>User Dashboard</h3>
+        <a href="produk.html" class="nav-link">Lihat Produk</a>
+        <a href="transaksi.html" class="nav-link">Lihat Transaksi</a>
+        <a href="profil.html" class="nav-link">Profil</a>
+    `;
+}
+
+// Fungsi login
 function login(e) {
     e.preventDefault();
 
@@ -22,13 +59,13 @@ function login(e) {
         currentUser = user;
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         alert('Login berhasil!');
-        window.location.href = 'index.html'; // Arahkan ke halaman utama setelah login
+        window.location.href = 'index.html'; // Redirect ke dashboard
     } else {
         alert('Username atau password salah.');
     }
 }
 
-// Fungsi untuk register
+// Fungsi register
 function register(e) {
     e.preventDefault();
 
@@ -36,7 +73,7 @@ function register(e) {
     const password = document.getElementById('registerPassword').value;
     const email = document.getElementById('registerEmail').value;
 
-    const newUser = { id: users.length + 1, username, password, email };
+    const newUser = { id: users.length + 1, username, password, email, role: 'user' };
     users.push(newUser);
     localStorage.setItem('users', JSON.stringify(users));
 
@@ -44,74 +81,9 @@ function register(e) {
     window.location.href = 'login.html';
 }
 
-// Cek apakah pengguna sudah login
-function checkAuth() {
-    currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (!currentUser) {
-        window.location.href = 'login.html';
-    }
-}
-
 // Event listener untuk form login dan register
 document.getElementById('loginForm').addEventListener('submit', login);
 document.getElementById('registerForm').addEventListener('submit', register);
-
-// Contoh penggunaan checkAuth
-document.addEventListener('DOMContentLoaded', checkAuth);
-
-
-
-function checkAuth() {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (!currentUser) {
-        window.location.href = 'login.html'; // Redirect jika tidak login
-    } else {
-        document.getElementById('logoutLink').addEventListener('click', () => {
-            localStorage.removeItem('currentUser');
-            window.location.href = 'login.html';
-        });
-
-        // Hak akses
-        if (currentUser.role === 'admin') {
-            loadAdminContent();
-        } else if (currentUser.role === 'user') {
-            loadUserContent();
-        }
-    }
-}
-
-function loadAdminContent() {
-    document.getElementById('content').innerHTML = `
-        <h3>Admin Content</h3>
-        <p>Hanya admin yang bisa mengakses ini.</p>
-        <a href="#" id="managePelanggan" class="nav-link">Kelola Pelanggan</a>
-        <a href="#" id="manageKategori" class="nav-link">Kelola Kategori</a>
-        <a href="#" id="manageSuplier" class="nav-link">Kelola Suplier</a>
-        <a href="#" id="manageProduk" class="nav-link">Kelola Produk</a>
-        <a href="#" id="manageTransaksi" class="nav-link">Kelola Transaksi</a>
-        <a href="#" id="viewLaporan" class="nav-link">Lihat Laporan</a>
-    `;
-
-    document.getElementById('managePelanggan').addEventListener('click', () => {
-        window.location.href = 'pelanggan.html'; // Halaman pelanggan admin
-    });
-    // Tambahkan event listener lainnya...
-}
-
-function loadUserContent() {
-    document.getElementById('content').innerHTML = `
-        <h3>User Content</h3>
-        <p>Hanya user yang bisa mengakses ini.</p>
-        <a href="#" id="viewProduk" class="nav-link">Lihat Produk</a>
-        <a href="#" id="viewTransaksi" class="nav-link">Lihat Transaksi</a>
-        <a href="#" id="viewProfil" class="nav-link">Profil</a>
-    `;
-
-    document.getElementById('viewProduk').addEventListener('click', () => {
-        window.location.href = 'produk.html'; // Halaman produk user
-    });
-    // Tambahkan event listener lainnya...
-}
 
 // Jalankan checkAuth saat halaman dimuat
 document.addEventListener('DOMContentLoaded', checkAuth);
