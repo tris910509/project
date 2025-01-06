@@ -39,71 +39,7 @@
     <!-- Tab Kategori -->
     <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
         <h3>Kategori</h3>
-        <!-- Tambahkan konten kategori di sini -->
-    </div>
-
-    <!-- Tab Supplier -->
-    <div class="tab-pane fade" id="suppliers" role="tabpanel" aria-labelledby="suppliers-tab">
-        <h3>Supplier</h3>
-        <!-- Tambahkan konten supplier di sini -->
-    </div>
-
-    <!-- Tab Transaksi -->
-    <div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
-        <h3>Transaksi</h3>
-        <!-- Tambahkan konten transaksi di sini -->
-    </div>
-</div>
-
-
-
-
-        
-        <div class="tab-content mt-3">
-            <!-- Halaman Produk -->
-            <div class="tab-pane fade show active" id="products">
-                <h3>Tambah Produk</h3>
-                <form id="productForm">
-                    <div class="mb-3">
-                        <label for="productName" class="form-label">Nama Produk</label>
-                        <input type="text" id="productName" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="productCategory" class="form-label">Kategori</label>
-                        <select id="productCategory" class="form-select" required></select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="productSupplier" class="form-label">Supplier</label>
-                        <select id="productSupplier" class="form-select" required></select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="productStock" class="form-label">Stok</label>
-                        <input type="number" id="productStock" class="form-control" min="0" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="productPrice" class="form-label">Harga</label>
-                        <input type="number" id="productPrice" class="form-control" min="0" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Tambah Produk</button>
-                </form>
-
-                <h3 class="mt-4">Daftar Produk</h3>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nama</th>
-                            <th>Kategori</th>
-                            <th>Supplier</th>
-                            <th>Stok</th>
-                            <th>Harga</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productList"></tbody>
-                </table>
-            </div>
-
-            <!-- Halaman Kategori -->
+        <!-- Halaman Kategori -->
             <h3>Tambah/Edit Kategori</h3>
 <form id="categoryForm">
     <input type="hidden" id="categoryId" value="">
@@ -116,10 +52,12 @@
 
 <h3 class="mt-4">Daftar Kategori</h3>
 <ul id="categoryList" class="list-group"></ul>
+    </div>
 
-
-            <!-- Halaman Supplier -->
-    <h3>Tambah/Edit Supplier</h3>
+    <!-- Tab Supplier -->
+    <div class="tab-pane fade" id="suppliers" role="tabpanel" aria-labelledby="suppliers-tab">
+        <h3>Supplier</h3>
+        <h3>Tambah/Edit Supplier</h3>
 <form id="supplierForm">
     <input type="hidden" id="supplierId" value="">
     <div class="mb-3">
@@ -155,9 +93,12 @@
     </thead>
     <tbody id="supplierList"></tbody>
 </table>
+    </div>
 
-
-            <div class="tab-pane fade" id="transactions">
+    <!-- Tab Transaksi -->
+    <div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
+        <h3>Transaksi</h3>
+         <div class="tab-pane fade" id="transactions">
     <h3>Tambah Transaksi</h3>
     <form id="transactionForm">
         <div class="mb-3">
@@ -205,6 +146,63 @@
         </thead>
         <tbody id="transactionList"></tbody>
     </table>
+    </div>
+</div>
+
+<div class="tab-content mt-3">
+            <!-- Halaman Produk -->
+            <div class="tab-pane fade show active" id="products">
+                <h3>Tambah Produk</h3>
+                <form id="productForm">
+                    <div class="mb-3">
+                        <label for="productName" class="form-label">Nama Produk</label>
+                        <input type="text" id="productName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productCategory" class="form-label">Kategori</label>
+                        <select id="productCategory" class="form-select" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productSupplier" class="form-label">Supplier</label>
+                        <select id="productSupplier" class="form-select" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productStock" class="form-label">Stok</label>
+                        <input type="number" id="productStock" class="form-control" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productPrice" class="form-label">Harga</label>
+                        <input type="number" id="productPrice" class="form-control" min="0" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Tambah Produk</button>
+                </form>
+
+                <h3 class="mt-4">Daftar Produk</h3>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama</th>
+                            <th>Kategori</th>
+                            <th>Supplier</th>
+                            <th>Stok</th>
+                            <th>Harga</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productList"></tbody>
+                </table>
+            </div>
+        
+        
+
+            
+
+
+            <!-- Halaman Supplier -->
+    
+
+
+           
 </div>
 
 
