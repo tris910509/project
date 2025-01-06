@@ -1,3 +1,197 @@
+// Simulasi pengguna yang login
+const currentUser = {
+    name: "John Doe",
+    role: "Manager", // Peran: "Admin", "Manager", "Staff"
+};
+
+// Data Simulasi
+let pelangganData = [];
+let kategoriData = [];
+let suplierData = [];
+let produkData = [];
+let transaksiData = [];
+let laporanData = [];
+
+// Hak akses berdasarkan peran
+const roleAccess = {
+    Admin: ["Pelanggan", "Kategori", "Suplier", "Produk", "Transaksi", "Laporan", "Profil"],
+    Manager: ["Pelanggan", "Kategori", "Suplier", "Produk", "Transaksi", "Laporan"],
+    Staff: ["Transaksi", "Laporan"],
+};
+
+// Inisialisasi halaman
+function initialize() {
+    // Tampilkan nama dan peran pengguna
+    document.getElementById("userName").innerText = currentUser.name;
+    document.getElementById("userRole").innerText = currentUser.role;
+
+    // Render menu navigasi berdasarkan hak akses
+    const navMenu = document.getElementById("navMenu");
+    const allowedMenus = roleAccess[currentUser.role];
+    navMenu.innerHTML = "";
+    allowedMenus.forEach((menu) => {
+        const menuId = menu.toLowerCase() + "Tab";
+        navMenu.innerHTML += `<a class="nav-link" href="#" id="${menuId}" onclick="navigateTo('${menu}')">${menu}</a>`;
+    });
+
+    // Tampilkan halaman dashboard sebagai default
+    document.getElementById("contentArea").innerHTML = "<h3 class='text-center'>Selamat datang di Dashboard CRUD</h3>";
+}
+
+// Navigasi ke halaman berdasarkan menu
+function navigateTo(menu) {
+    switch (menu) {
+        case "Pelanggan":
+            renderPelanggan();
+            break;
+        case "Kategori":
+            renderKategori();
+            break;
+        case "Suplier":
+            renderSuplier();
+            break;
+        case "Produk":
+            renderProduk();
+            break;
+        case "Transaksi":
+            renderTransaksi();
+            break;
+        case "Laporan":
+            renderLaporan();
+            break;
+        case "Profil":
+            renderProfil();
+            break;
+        default:
+            document.getElementById("contentArea").innerHTML = "<h3 class='text-center'>Halaman tidak ditemukan</h3>";
+    }
+}
+
+// Logout
+function logout() {
+    alert("Anda telah logout.");
+    location.reload();
+}
+
+// ================= CRUD Pelanggan =================
+function renderPelanggan() {
+    let html = `
+        <button class="btn btn-primary mb-3" onclick="tambahPelanggan()">Tambah Pelanggan</button>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>No HP</th>
+                    <th>Alamat</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    pelangganData.forEach((p, index) => {
+        html += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${p.nama}</td>
+                <td>${p.noHp}</td>
+                <td>${p.alamat}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="editPelanggan(${index})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="hapusPelanggan(${index})">Hapus</button>
+                </td>
+            </tr>
+        `;
+    });
+    html += '</tbody></table>';
+    document.getElementById("contentArea").innerHTML = html;
+}
+
+function tambahPelanggan() {
+    const nama = prompt("Masukkan Nama Pelanggan:");
+    const noHp = prompt("Masukkan No HP:");
+    const alamat = prompt("Masukkan Alamat:");
+    if (nama && noHp && alamat) {
+        pelangganData.push({ nama, noHp, alamat });
+        renderPelanggan();
+    }
+}
+
+function editPelanggan(index) {
+    const pelanggan = pelangganData[index];
+    pelanggan.nama = prompt("Masukkan Nama Baru:", pelanggan.nama);
+    pelanggan.noHp = prompt("Masukkan No HP Baru:", pelanggan.noHp);
+    pelanggan.alamat = prompt("Masukkan Alamat Baru:", pelanggan.alamat);
+    renderPelanggan();
+}
+
+function hapusPelanggan(index) {
+    if (confirm("Apakah Anda yakin ingin menghapus pelanggan ini?")) {
+        pelangganData.splice(index, 1);
+        renderPelanggan();
+    }
+}
+
+// ================= CRUD Kategori =================
+function renderKategori() {
+    let html = `
+        <button class="btn btn-primary mb-3" onclick="tambahKategori()">Tambah Kategori</button>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama Kategori</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    kategoriData.forEach((k, index) => {
+        html += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${k.nama}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="editKategori(${index})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="hapusKategori(${index})">Hapus</button>
+                </td>
+            </tr>
+        `;
+    });
+    html += '</tbody></table>';
+    document.getElementById("contentArea").innerHTML = html;
+}
+
+function tambahKategori() {
+    const nama = prompt("Masukkan Nama Kategori:");
+    if (nama) {
+        kategoriData.push({ nama });
+        renderKategori();
+    }
+}
+
+function editKategori(index) {
+    const kategori = kategoriData[index];
+    kategori.nama = prompt("Masukkan Nama Baru:", kategori.nama);
+    renderKategori();
+}
+
+function hapusKategori(index) {
+    if (confirm("Apakah Anda yakin ingin menghapus kategori ini?")) {
+        kategoriData.splice(index, 1);
+        renderKategori();
+    }
+}
+
+// Tambahkan fungsi serupa untuk **Suplier**, **Produk**, **Transaksi**, **Laporan**, dan **Profil**.
+
+// Inisialisasi halaman
+initialize();
+//≠========================================= batas
+
+
+
+
 // Initial Data Storage
 let pelangganData = [];
 let kategoriData = [];
