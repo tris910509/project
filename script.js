@@ -4,6 +4,7 @@ let produk = [];
 let kategori = [];
 let suplier = [];
 let transaksi = [];
+let currentEditingIndex = null;
 
 // Fungsi untuk menampilkan data dalam tabel
 function updateTable(elementId, data) {
@@ -11,14 +12,13 @@ function updateTable(elementId, data) {
     tableBody.innerHTML = '';
     data.forEach((item, index) => {
         const row = document.createElement('tr');
-        for (const key in item) {
-            if (item.hasOwnProperty(key)) {
-                const cell = document.createElement('td');
-                cell.innerText = item[key];
-                row.appendChild(cell);
-            }
-        }
-        row.innerHTML += `
+        row.innerHTML = `
+            <td>${item.id}</td>
+            <td>${item.nama}</td>
+            ${elementId === 'transaksiList' ? `<td>${item.produk}</td>` : ''}
+            ${elementId === 'transaksiList' ? `<td>${item.jumlah}</td>` : ''}
+            ${elementId === 'transaksiList' ? `<td>${item.total}</td>` : ''}
+            ${elementId === 'transaksiList' ? `<td>${item.pelanggan}</td>` : ''}
             <td>
                 <button class="btn btn-warning btn-sm" onclick="editRow('${elementId}', ${index})">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteRow('${elementId}', ${index})">Hapus</button>
@@ -57,8 +57,8 @@ function editRow(tableId, index) {
         document.getElementById('saveSuplierBtn').style.display = 'none';
         document.getElementById('editSuplierBtn').style.display = 'block';
     } else if (tableId === 'transaksiList') {
-        document.getElementById('transaksiPelanggan').value = item.pelanggan;
-        document.getElementById('transaksiProduk').value = item.produk;
+        document.getElementById('transaksiPelanggan').value = item.pelangganId;
+        document.getElementById('transaksiProduk').value = item.produkId;
         document.getElementById('transaksiJumlah').value = item.jumlah;
         document.getElementById('transaksiTotal').value = item.total;
         document.getElementById('saveTransaksiBtn').style.display = 'none';
@@ -151,18 +151,12 @@ document.getElementById('saveTransaksiBtn').addEventListener('click', () => {
     const pelangganId = document.getElementById('transaksiPelanggan').value;
     const produkId = document.getElementById('transaksiProduk').value;
     const jumlah = document.getElementById('transaksiJumlah').value;
-    const total = document.getElementById('transaksiTotal').value;
+    const total = jumlah * (produk.find(p => p.id == produkId).harga || 0);
     
     if (pelangganId && produkId && jumlah && total) {
-        const pelanggan = pelanggan.find(p => p.id === parseInt(pelangganId));
-        const produk = produk.find(p => p.id === parseInt(produkId));
-        const newTransaksi = {
-            id: transaksi.length + 1,
-            pelanggan: pelanggan.nama,
-            produk: produk.nama,
-            jumlah,
-            total,
-        };
+        const pelanggan = pelanggan.find(p => p.id == pelangganId);
+        const produk = produk.find(p => p.id == produkId);
+        const newTransaksi = { id: transaksi.length + 1, pelangganId, produkId, pelanggan: pelanggan.nama, produk: produk.nama, jumlah, total };
         transaksi.push(newTransaksi);
         updateTable('transaksiList', transaksi);
         clearForm('transaksiForm');
@@ -171,7 +165,30 @@ document.getElementById('saveTransaksiBtn').addEventListener('click', () => {
     }
 });
 
-// Fungsi untuk membersihkan form setelah submit
+// Fungsi untuk menyimpan profil user
+document.getElementById('saveProfilBtn').addEventListener('click', () => {
+    const nama = document.getElementById('profilNama').value;
+    const email = document.getElementById('profilEmail').value;
+    const password = document.getElementById('profilPassword').value;
+
+    if (nama && email && password) {
+        alert('Profil berhasil diperbarui!');
+        // Simpan data profil jika diperlukan
+    } else {
+        alert('Harap isi semua field!');
+    }
+});
+
+// Fungsi untuk membersihkan form
 function clearForm(formId) {
     document.getElementById(formId).reset();
+    document.getElementById('savePelangganBtn').style.display = 'block';
+    document.getElementById('editPelangganBtn').style.display = 'none';
+    document.getElementById('saveProdukBtn').style.display = 'block';
+    document.getElementById('editProdukBtn').style.display = 'none';
+    document.getElementById('saveKategoriBtn').style.display = 'block';
+    document.getElementById('editKategoriBtn').style.display = 'none';
+    document.getElementById('saveSuplierBtn').style.display = 'block';
+    document.getElementById('editSuplierBtn').style.display = 'none';
+    document.getElementById('saveTransaksiBtn').style.display = 'block';
 }
