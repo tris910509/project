@@ -91,6 +91,9 @@
         <p id="diskonText"></p>
         <p id="totalYangHarusDibayarText"></p>
         <p id="kembalianText"></p>
+
+        <h4>Status Pembayaran</h4>
+        <p id="statusPembayaranDetail"></p>
     </div>
 
     <script>
@@ -99,14 +102,14 @@
             return JSON.parse(localStorage.getItem('produk')) || [];
         }
 
-        // Mengambil data metode pembayaran dari localStorage
-        function getMetodePembayaran() {
-            return JSON.parse(localStorage.getItem('metodePembayaran')) || [];
-        }
-
         // Mengambil data keranjang belanja dari localStorage
         function getKeranjang() {
             return JSON.parse(localStorage.getItem('keranjang')) || [];
+        }
+
+        // Mengambil data transaksi dari localStorage
+        function getTransaksi() {
+            return JSON.parse(localStorage.getItem('transaksi')) || [];
         }
 
         // Menyimpan data keranjang ke localStorage
@@ -122,19 +125,9 @@
         // Render produk dan metode pembayaran ke dalam dropdown
         function renderDropdowns() {
             const produkList = getProduk();
-            const metodeList = getMetodePembayaran();
-
-            const produkDropdown = document.getElementById('produk');
             const metodeDropdown = document.getElementById('metodePembayaran');
 
             produkList.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.nama;
-                option.textContent = item.nama;
-                produkDropdown.appendChild(option);
-            });
-
-            metodeList.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.nama;
                 option.textContent = item.nama;
@@ -256,14 +249,17 @@
             const kembalian = jumlahBayar - totalYangHarusDibayar;
 
             // Menyimpan transaksi setelah pembayaran
-            const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+            const transaksiList = getTransaksi();
+            const statusPembayaran = document.getElementById('metodePembayaran').value === 'Transfer' ? 'Pembayaran Dikonfirmasi' : 'Pembayaran Selesai';
+
             transaksiList.push({
                 keranjang: keranjangList,
                 totalHarga: totalKeranjang,
                 diskon,
                 totalYangHarusDibayar,
                 kembalian,
-                metodePembayaran: document.getElementById('metodePembayaran').value
+                metodePembayaran: document.getElementById('metodePembayaran').value,
+                statusPembayaran
             });
             saveTransaksi(transaksiList);
 
@@ -272,6 +268,9 @@
             document.getElementById('diskonText').textContent = `Diskon: ${diskon}% (Rp ${diskonAmount})`;
             document.getElementById('totalYangHarusDibayarText').textContent = `Total yang harus dibayar: Rp ${totalYangHarusDibayar}`;
             document.getElementById('kembalianText').textContent = `Kembalian: Rp ${kembalian}`;
+
+            // Tampilkan status pembayaran
+            document.getElementById('statusPembayaranDetail').textContent = `Status Pembayaran: ${statusPembayaran}`;
 
             // Kosongkan keranjang setelah pembayaran
             saveKeranjang([]);
