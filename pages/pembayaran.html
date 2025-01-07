@@ -3,134 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halaman Pembayaran</title>
+    <title>Pembayaran</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
-        <h2 class="text-center">Halaman Pembayaran</h2>
+        <h2 class="text-center">Pembayaran</h2>
 
-        <!-- Form Pembayaran -->
-        <div class="card mt-4">
-            <div class="card-body">
-                <h5 class="card-title">Form Pembayaran</h5>
-                <form id="pembayaranForm">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="tanggalPembayaran" class="form-label">Tanggal Pembayaran</label>
-                            <input type="date" class="form-control" id="tanggalPembayaran">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
-                            <select class="form-select" id="metodePembayaran">
-                                <option value="Cash">Cash</option>
-                                <option value="Transfer">Transfer</option>
-                                <option value="QR">QR</option>
-                                <option value="Ewallet">Ewallet</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="jumlahBayar" class="form-label">Jumlah Bayar</label>
-                            <input type="number" class="form-control" id="jumlahBayar" min="0">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="statusPembayaran" class="form-label">Status Pembayaran</label>
-                            <input type="text" class="form-control" id="statusPembayaran" readonly>
-                        </div>
-                    </div>
-
-                    <div class="text-end">
-                        <button type="button" class="btn btn-success" id="konfirmasiPembayaran">Konfirmasi Pembayaran</button>
-                    </div>
-                </form>
+        <!-- Pembayaran Form -->
+        <form id="pembayaranForm">
+            <div class="mb-3">
+                <label for="transaksi" class="form-label">Pilih Transaksi</label>
+                <select class="form-select" id="transaksi" required>
+                    <option value="" disabled selected>Pilih Transaksi</option>
+                </select>
             </div>
-        </div>
 
-        <!-- Tabel Pembayaran -->
-        <div class="card mt-4">
-            <div class="card-body">
-                <h5 class="card-title">Daftar Pembayaran</h5>
-                <table class="table table-striped" id="pembayaranTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Tanggal Pembayaran</th>
-                            <th>Metode Pembayaran</th>
-                            <th>Total Pembayaran</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div class="mb-3">
+                <label for="statusPembayaran" class="form-label">Status Pembayaran</label>
+                <select class="form-select" id="statusPembayaran" required>
+                    <option value="Pending">Pending</option>
+                    <option value="Sedang Proses Verifikasi">Sedang Proses Verifikasi</option>
+                    <option value="Belum Lunas">Belum Lunas</option>
+                    <option value="Lunas">Lunas</option>
+                </select>
             </div>
+
+            <div class="mb-3">
+                <label for="konfirmasiPembayaran" class="form-label">Konfirmasi Pembayaran</label>
+                <button type="button" class="btn btn-secondary" id="konfirmasiPembayaran">Konfirmasi Pembayaran</button>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Simpan Pembayaran</button>
+        </form>
+
+        <!-- Struk Pembayaran -->
+        <div id="strukPembayaran" class="d-none mt-4">
+            <h4>Struk Pembayaran</h4>
+            <div id="strukContent"></div>
+            <button class="btn btn-success mt-3" onclick="window.print()">Cetak Struk</button>
         </div>
     </div>
 
     <script>
-        let pembayaranList = JSON.parse(localStorage.getItem('pembayaran')) || [];
+        const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
 
-        // Tampilkan pembayaran yang sudah ada
-        function renderPembayaran() {
-            const pembayaranTable = document.querySelector('#pembayaranTable tbody');
-            pembayaranTable.innerHTML = '';
-
-            pembayaranList.forEach((pembayaran, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${pembayaran.tanggal}</td>
-                    <td>${pembayaran.metodePembayaran}</td>
-                    <td>Rp ${pembayaran.total.toFixed(2)}</td>
-                    <td>${pembayaran.status}</td>
-                    <td><button class="btn btn-warning" onclick="konfirmasiPembayaran(${index})">Konfirmasi</button></td>
-                `;
-                pembayaranTable.appendChild(row);
+        // Render dropdown transaksi
+        function renderTransaksi() {
+            const transaksiSelect = document.getElementById('transaksi');
+            transaksiList.forEach((transaksi, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `Transaksi ${index + 1} - ${transaksi.pelanggan} - Rp ${transaksi.total}`;
+                transaksiSelect.appendChild(option);
             });
         }
 
-        // Konfirmasi Pembayaran
-        function konfirmasiPembayaran(index) {
-            const pembayaran = pembayaranList[index];
-            pembayaran.status = 'Lunas'; // Pembayaran dikonfirmasi sebagai lunas
-            localStorage.setItem('pembayaran', JSON.stringify(pembayaranList));
-            renderPembayaran();
+        // Konfirmasi pembayaran
+        document.getElementById('konfirmasiPembayaran').addEventListener('click', function() {
+            const transaksiIndex = document.getElementById('transaksi').value;
+            const status = document.getElementById('statusPembayaran').value;
+
+            if (transaksiIndex !== "" && status !== "") {
+                transaksiList[transaksiIndex].status = status;
+                localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+                renderStruk(transaksiList[transaksiIndex]);
+            } else {
+                alert("Silakan pilih transaksi dan status pembayaran");
+            }
+        });
+
+        // Render struk pembayaran
+        function renderStruk(transaksi) {
+            const strukContent = document.getElementById('strukContent');
+            strukContent.innerHTML = `
+                <p><strong>Pelanggan:</strong> ${transaksi.pelanggan}</p>
+                <p><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</p>
+                <p><strong>Total:</strong> Rp ${transaksi.total}</p>
+                <p><strong>Dibayar:</strong> Rp ${transaksi.bayar}</p>
+                <p><strong>Kembalian:</strong> Rp ${transaksi.kembalian}</p>
+                <p><strong>Status Pembayaran:</strong> ${transaksi.status}</p>
+                <h5>Detail Produk</h5>
+                <ul>
+                    ${transaksi.keranjang.map(item => `<li>${item.nama} - ${item.jumlah} pcs - Rp ${item.subtotal.toFixed(2)}</li>`).join('')}
+                </ul>
+            `;
+            document.getElementById('strukPembayaran').classList.remove('d-none');
         }
 
-        // Konfirmasi pembayaran baru
-        document.getElementById('konfirmasiPembayaran').addEventListener('click', () => {
-            const tanggalPembayaran = document.getElementById('tanggalPembayaran').value;
-            const metodePembayaran = document.getElementById('metodePembayaran').value;
-            const jumlahBayar = parseInt(document.getElementById('jumlahBayar').value);
-            const statusPembayaran = document.getElementById('statusPembayaran');
-            const status = 'Pending'; // Status pembayaran awal
-
-            if (jumlahBayar <= 0) {
-                alert('Jumlah bayar tidak boleh kurang dari atau sama dengan 0');
-                return;
-            }
-
-            const pembayaran = {
-                tanggal: tanggalPembayaran || new Date().toISOString().split('T')[0],
-                metodePembayaran,
-                total: jumlahBayar,
-                status
-            };
-
-            pembayaranList.push(pembayaran);
-            localStorage.setItem('pembayaran', JSON.stringify(pembayaranList));
-            renderPembayaran();
-        });
-
-        // Render pembayaran saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', () => {
-            renderPembayaran();
-        });
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
