@@ -31,6 +31,11 @@
                 <input type="number" class="form-control" id="jumlah" placeholder="Masukkan jumlah produk">
             </div>
 
+            <div class="mb-3">
+                <label for="diskon" class="form-label">Diskon (%)</label>
+                <input type="number" class="form-control" id="diskon" placeholder="Masukkan diskon produk (opsional)">
+            </div>
+
             <button type="button" class="btn btn-secondary mb-3" id="tambahKeranjang">Tambah ke Keranjang</button>
 
             <h4>Keranjang</h4>
@@ -41,6 +46,7 @@
                         <th>Produk</th>
                         <th>Harga</th>
                         <th>Jumlah</th>
+                        <th>Diskon (%)</th>
                         <th>Subtotal</th>
                         <th>Action</th>
                     </tr>
@@ -68,24 +74,20 @@
                 <input type="number" class="form-control" id="bayar" placeholder="Masukkan jumlah yang dibayar">
             </div>
 
+            <div class="mb-3">
+                <label for="kembalian" class="form-label">Kembalian</label>
+                <input type="number" class="form-control" id="kembalian" readonly>
+            </div>
+
             <button type="submit" class="btn btn-primary">Proses Transaksi</button>
         </form>
 
-        <!-- Tabel Konfirmasi Pembayaran -->
-        <h4>Konfirmasi Pembayaran</h4>
-        <table class="table table-striped" id="konfirmasiPembayaranTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Pelanggan</th>
-                    <th>Total</th>
-                    <th>Dibayar</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <!-- Struk -->
+        <div id="strukPembayaran" class="d-none">
+            <h4>Struk Pembayaran</h4>
+            <div id="strukContent"></div>
+            <button class="btn btn-success mt-3" onclick="window.print()">Cetak Struk</button>
+        </div>
     </div>
 
     <script>
@@ -120,13 +122,18 @@
         document.getElementById('tambahKeranjang').addEventListener('click', () => {
             const produk = JSON.parse(document.getElementById('produk').value);
             const jumlah = parseInt(document.getElementById('jumlah').value);
+            const diskon = parseFloat(document.getElementById('diskon').value || 0);
 
             if (jumlah > 0) {
+                const diskonNominal = (produk.harga * jumlah * diskon) / 100;
+                const subtotal = produk.harga * jumlah - diskonNominal;
+
                 keranjang.push({
                     nama: produk.nama,
                     harga: produk.harga,
                     jumlah,
-                    subtotal: produk.harga * jumlah
+                    diskon,
+                    subtotal
                 });
                 renderKeranjang();
             } else {
@@ -147,7 +154,8 @@
                     <td>${item.nama}</td>
                     <td>Rp ${item.harga}</td>
                     <td>${item.jumlah}</td>
-                    <td>Rp ${item.subtotal}</td>
+                    <td>${item.diskon}%</td>
+                    <td>Rp ${item.subtotal.toFixed(2)}</td>
                     <td>
                         <button class="btn btn-danger btn-sm" onclick="hapusKeranjang(${index})">Hapus</button>
                     </td>
@@ -156,7 +164,7 @@
                 total += item.subtotal;
             });
 
-            document.getElementById('total').value = total;
+            document.getElementById('total').value = total.toFixed(2);
         }
 
         // Proses transaksi
@@ -175,61 +183,48 @@
                 status = 'Pending Konfirmasi';
             }
 
+            const kembalian = bayar - total;
+            document.getElementById('kembalian').value = kembalian >= 0 ? kembalian.toFixed(2) : 0;
+
             const transaksi = {
                 pelanggan,
                 total,
                 metodePembayaran,
                 bayar,
+                kembalian,
                 status,
                 keranjang
             };
 
             transaksiList.push(transaksi);
             localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-            alert('Transaksi berhasil diproses');
+            renderStruk(transaksi);
             this.reset();
             keranjang = [];
             renderKeranjang();
-            renderKonfirmasiPembayaran();
         });
 
-        // Render konfirmasi pembayaran
-        function renderKonfirmasiPembayaran() {
-            const konfirmasiTable = document.querySelector('#konfirmasiPembayaranTable tbody');
-            konfirmasiTable.innerHTML = '';
-
-            transaksiList.forEach((transaksi, index) => {
-                if (transaksi.metodePembayaran === 'Cash' && transaksi.status === 'Belum Lunas') {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${transaksi.pelanggan}</td>
-                        <td>Rp ${transaksi.total}</td>
-                        <td>Rp ${transaksi.bayar}</td>
-                        <td>${transaksi.status}</td>
-                        <td>
-                            <button class="btn btn-primary btn-sm" onclick="konfirmasiPembayaran(${index})">Konfirmasi</button>
-                        </td>
-                    `;
-                    konfirmasiTable.appendChild(row);
-                }
-            });
-        }
-
-        // Konfirmasi pembayaran
-        function konfirmasiPembayaran(index) {
-            const transaksi = transaksiList[index];
-            transaksi.status = 'Lunas';
-            localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-            alert('Pembayaran berhasil dikonfirmasi!');
-            renderKonfirmasiPembayaran();
+        // Render struk
+        function renderStruk(transaksi) {
+            const strukContent = document.getElementById('strukContent');
+            strukContent.innerHTML = `
+                <p><strong>Pelanggan:</strong> ${transaksi.pelanggan}</p>
+                <p><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</p>
+                <p><strong>Total:</strong> Rp ${transaksi.total}</p>
+                <p><strong>Dibayar:</strong> Rp ${transaksi.bayar}</p>
+                <p><strong>Kembalian:</strong> Rp ${transaksi.kembalian}</p>
+                <h5>Detail Produk</h5>
+                <ul>
+                    ${transaksi.keranjang.map(item => `<li>${item.nama} - ${item.jumlah} pcs - Rp ${item.subtotal.toFixed(2)}</li>`).join('')}
+                </ul>
+            `;
+            document.getElementById('strukPembayaran').classList.remove('d-none');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             renderPelanggan();
             renderProduk();
             renderKeranjang();
-            renderKonfirmasiPembayaran();
         });
     </script>
 
