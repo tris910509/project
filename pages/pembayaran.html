@@ -3,32 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Konfirmasi Pembayaran</title>
+    <title>Pembayaran</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
-        <h2 class="text-center">Konfirmasi Pembayaran</h2>
+        <h2 class="text-center">Halaman Pembayaran</h2>
 
-        <!-- Filter Metode Pembayaran -->
-        <div class="mb-3">
-            <label for="filterMetodePembayaran" class="form-label">Filter Metode Pembayaran</label>
-            <select class="form-select" id="filterMetodePembayaran">
-                <option value="Transfer">Transfer</option>
-                <option value="QR">QR</option>
-                <option value="Ewallet">Ewallet</option>
-            </select>
-        </div>
-
-        <!-- Tabel Pembayaran -->
-        <table class="table table-striped" id="pembayaranTable">
+        <h4>Daftar Transaksi</h4>
+        <table class="table table-striped" id="transaksiTable">
             <thead>
                 <tr>
-                    <th>No. Invoice</th>
+                    <th>#</th>
                     <th>Pelanggan</th>
+                    <th>Metode Pembayaran</th>
                     <th>Total</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -38,42 +29,36 @@
     <script>
         const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
 
-        // Render transaksi untuk konfirmasi pembayaran
+        // Render semua transaksi
         function renderTransaksi() {
-            const filterMetodePembayaran = document.getElementById('filterMetodePembayaran').value;
-            const filteredTransaksi = transaksiList.filter(transaksi => transaksi.metodePembayaran === filterMetodePembayaran && transaksi.status === 'Pending');
+            const transaksiTable = document.querySelector('#transaksiTable tbody');
+            transaksiTable.innerHTML = '';
 
-            const pembayaranTable = document.querySelector('#pembayaranTable tbody');
-            pembayaranTable.innerHTML = '';
-
-            filteredTransaksi.forEach((transaksi) => {
+            transaksiList.forEach((transaksi, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${transaksi.invoice}</td>
+                    <td>${index + 1}</td>
                     <td>${transaksi.pelanggan}</td>
+                    <td>${transaksi.metodePembayaran}</td>
                     <td>Rp ${transaksi.total}</td>
                     <td>${transaksi.status}</td>
                     <td>
-                        <button class="btn btn-success btn-sm" onclick="konfirmasiLunas('${transaksi.invoice}')">Konfirmasi Lunas</button>
+                        ${transaksi.metodePembayaran === "Cash" && transaksi.status === "Belum Lunas" ? 
+                            `<button class="btn btn-primary btn-sm" onclick="konfirmasiLunas(${index})">Konfirmasi Lunas</button>` : 
+                            ''
+                        }
                     </td>
                 `;
-                pembayaranTable.appendChild(row);
+                transaksiTable.appendChild(row);
             });
         }
 
-        // Konfirmasi pembayaran lunas
-        function konfirmasiLunas(invoice) {
-            const transaksi = transaksiList.find(transaksi => transaksi.invoice === invoice);
-            if (transaksi) {
-                transaksi.status = 'Lunas';
-                localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-                renderTransaksi();
-                alert('Pembayaran berhasil dikonfirmasi');
-            }
+        // Konfirmasi Lunas untuk Cash
+        function konfirmasiLunas(index) {
+            transaksiList[index].status = 'Lunas';
+            localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+            renderTransaksi();
         }
-
-        // Filter transaksi saat halaman dimuat
-        document.getElementById('filterMetodePembayaran').addEventListener('change', renderTransaksi);
 
         document.addEventListener('DOMContentLoaded', renderTransaksi);
     </script>
