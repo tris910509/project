@@ -10,139 +10,68 @@
     <div class="container mt-5">
         <h2 class="text-center">Konfirmasi Pembayaran</h2>
 
-        <!-- Filter Metode Pembayaran -->
-        <div class="mb-3">
-            <label for="filterMetodePembayaran" class="form-label">Filter Metode Pembayaran</label>
-            <select class="form-select" id="filterMetodePembayaran">
-                <option value="">Semua</option>
-                <option value="Cash">Cash</option>
-                <option value="Transfer">Transfer</option>
-                <option value="QR">QR</option>
-                <option value="Ewallet">Ewallet</option>
-            </select>
-        </div>
+        <div id="transaksiDetails"></div>
 
-        <h4>Daftar Transaksi</h4>
-        <table class="table table-striped" id="transaksiTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>No Invoice</th>
-                    <th>Pelanggan</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Metode Pembayaran</th>
-                    <th>Bukti Pembayaran</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div id="konfirmasiActions" class="mt-3">
+            <button id="konfirmasiBtn" class="btn btn-success">Konfirmasi Pembayaran</button>
+            <button class="btn btn-danger" onclick="kembaliKePembayaran()">Kembali ke Halaman Pembayaran</button>
+        </div>
     </div>
 
     <script>
-        const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+        // Ambil transaksi dari sessionStorage
+        const transaksi = JSON.parse(sessionStorage.getItem('transaksiUntukKonfirmasi'));
 
-        // Render transaksi
-        function renderTransaksi() {
-            const transaksiTable = document.getElementById('transaksiTable').getElementsByTagName('tbody')[0];
-            transaksiTable.innerHTML = '';
-
-            transaksiList.forEach((transaksi, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${transaksi.noInvoice}</td>
-                    <td>${transaksi.pelanggan}</td>
-                    <td>Rp ${transaksi.total}</td>
-                    <td>${transaksi.status}</td>
-                    <td>${transaksi.metodePembayaran}</td>
-                    <td>
-                        ${transaksi.metodePembayaran !== 'Cash' && transaksi.status !== 'Lunas' ? 
-                            `<a href="#" onclick="lihatBukti(${index})">Lihat Bukti</a>` : 
-                            'N/A'
-                        }
-                    </td>
-                    <td>
-                        <button class="btn btn-success btn-sm" onclick="konfirmasiPembayaran(${index})">Konfirmasi</button>
-                    </td>
-                `;
-                transaksiTable.appendChild(row);
-            });
+        // Menampilkan detail transaksi untuk konfirmasi
+        function renderTransaksiDetail() {
+            const transaksiDetails = document.getElementById('transaksiDetails');
+            transaksiDetails.innerHTML = `
+                <h4>No Invoice: ${transaksi.noInvoice}</h4>
+                <p>Pelanggan: ${transaksi.pelanggan}</p>
+                <p>Total: Rp ${transaksi.total}</p>
+                <p>Status Pembayaran: ${transaksi.status}</p>
+                <p>Metode Pembayaran: ${transaksi.metodePembayaran}</p>
+                ${transaksi.metodePembayaran !== 'Cash' ? 
+                    `<p>Bukti Pembayaran: <a href="${transaksi.buktiPembayaran}" target="_blank">Lihat Bukti</a></p>` : 
+                    ''
+                }
+            `;
         }
 
-        // Filter transaksi berdasarkan metode pembayaran
-        document.getElementById('filterMetodePembayaran').addEventListener('change', function () {
-            const metodeFilter = this.value;
-            const filteredTransaksi = metodeFilter
-                ? transaksiList.filter(t => t.metodePembayaran === metodeFilter)
-                : transaksiList;
-
-            renderFilteredTransaksi(filteredTransaksi);
-        });
-
-        function renderFilteredTransaksi(filteredTransaksi) {
-            const transaksiTable = document.getElementById('transaksiTable').getElementsByTagName('tbody')[0];
-            transaksiTable.innerHTML = '';
-
-            filteredTransaksi.forEach((transaksi, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${transaksi.noInvoice}</td>
-                    <td>${transaksi.pelanggan}</td>
-                    <td>Rp ${transaksi.total}</td>
-                    <td>${transaksi.status}</td>
-                    <td>${transaksi.metodePembayaran}</td>
-                    <td>
-                        ${transaksi.metodePembayaran !== 'Cash' && transaksi.status !== 'Lunas' ? 
-                            `<a href="#" onclick="lihatBukti(${index})">Lihat Bukti</a>` : 
-                            'N/A'
-                        }
-                    </td>
-                    <td>
-                        <button class="btn btn-success btn-sm" onclick="konfirmasiPembayaran(${index})">Konfirmasi</button>
-                    </td>
-                `;
-                transaksiTable.appendChild(row);
-            });
-        }
-
-        // Fungsi untuk melihat bukti pembayaran (hanya untuk metode selain Cash)
-        function lihatBukti(index) {
-            const transaksi = transaksiList[index];
-            if (transaksi.metodePembayaran !== 'Cash') {
-                alert(`Bukti pembayaran untuk No Invoice ${transaksi.noInvoice}: \n ${transaksi.buktiPembayaran}`);
-            }
-        }
-
-        // Konfirmasi Pembayaran
-        function konfirmasiPembayaran(index) {
-            const transaksi = transaksiList[index];
+        // Konfirmasi pembayaran
+        document.getElementById('konfirmasiBtn').addEventListener('click', function() {
             if (transaksi.metodePembayaran === 'Cash') {
-                if (transaksi.status === 'Belum Lunas') {
-                    const bayar = prompt('Masukkan jumlah pembayaran:', 0);
-                    if (parseFloat(bayar) >= transaksi.total) {
-                        transaksi.status = 'Lunas';
-                        alert('Pembayaran Lunas');
-                    } else {
-                        alert('Jumlah bayar kurang');
-                    }
+                const bayar = prompt('Masukkan jumlah pembayaran:', 0);
+                if (parseFloat(bayar) >= transaksi.total) {
+                    transaksi.status = 'Lunas';
+                    alert('Pembayaran Lunas');
+                } else {
+                    alert('Jumlah bayar kurang');
                 }
             } else {
-                if (transaksi.status === 'Sedang Proses Verifikasi') {
-                    transaksi.status = 'Lunas';
-                    alert('Pembayaran Terverifikasi');
-                }
+                transaksi.status = 'Lunas';
+                alert('Pembayaran Terverifikasi');
             }
 
             // Simpan perubahan status transaksi
-            localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-            renderTransaksi();
+            const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+            const index = transaksiList.findIndex(t => t.noInvoice === transaksi.noInvoice);
+            if (index !== -1) {
+                transaksiList[index] = transaksi;
+                localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+            }
+
+            // Kembali ke halaman pembayaran setelah konfirmasi
+            window.location.href = 'Pembayaran.html';
+        });
+
+        // Kembali ke halaman pembayaran jika tidak ingin mengonfirmasi
+        function kembaliKePembayaran() {
+            window.location.href = 'Pembayaran.html';
         }
 
-        // Render transaksi ketika halaman dimuat
-        document.addEventListener('DOMContentLoaded', renderTransaksi);
+        // Render transaksi detail saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', renderTransaksiDetail);
     </script>
 </body>
 </html>
