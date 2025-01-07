@@ -43,7 +43,7 @@
             </div>
         </div>
 
-        <!-- Modal Konfirmasi Pembayaran -->
+        <!-- Modal Konfirmasi Pembayaran (Untuk Cash jika bayar kurang) -->
         <div class="modal fade" id="konfirmasiModal" tabindex="-1" aria-labelledby="konfirmasiModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -121,11 +121,20 @@
             } else {
                 // Pembayaran Cash atau Transfer/QR/Ewallet
                 if (bayar >= total || metodePembayaran !== 'Cash') {
-                    transaksi.status = 'Lunas';
-                    transaksi.bayar = bayar;
-                    localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-                    alert('Pembayaran berhasil diproses');
-                    showStatus('Pembayaran Lunas');
+                    if (metodePembayaran === 'Transfer' || metodePembayaran === 'QR' || metodePembayaran === 'Ewallet') {
+                        transaksi.status = 'Pending';
+                        transaksi.bayar = bayar;
+                        transaksi.metodePembayaran = metodePembayaran;
+                        localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+
+                        // Menampilkan modal untuk menunggu konfirmasi pembayaran
+                        showStatus('Pembayaran Pending. Menunggu konfirmasi pembayaran.');
+                    } else {
+                        transaksi.status = 'Lunas';
+                        transaksi.bayar = bayar;
+                        localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+                        showStatus('Pembayaran Lunas');
+                    }
                 } else {
                     showStatus('Pembayaran Gagal');
                 }
