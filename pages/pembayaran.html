@@ -26,14 +26,13 @@
                     <th>#</th>
                     <th>ID Transaksi</th>
                     <th>Nama Pelanggan</th>
-                    <th>Produk</th>
-                    <th>Jumlah</th>
+                    <th>Metode Pembayaran</th>
                     <th>Status</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Isi tabel secara dinamis melalui JavaScript -->
+                <!-- Isi tabel secara dinamis -->
             </tbody>
         </table>
     </div>
@@ -66,19 +65,16 @@
             pembayaranTable.innerHTML = '';
 
             transaksiList.forEach((transaksi, index) => {
-                const produkList = transaksi.keranjang.map(item => `${item.nama} (${item.jumlah})`).join(', ');
-
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
                     <td>${transaksi.id}</td>
                     <td>${transaksi.pelanggan}</td>
-                    <td>${produkList}</td>
-                    <td>${transaksi.keranjang.reduce((sum, item) => sum + item.jumlah, 0)}</td>
+                    <td>${transaksi.metodePembayaran}</td>
                     <td>${transaksi.status}</td>
                     <td>
                         ${
-                            transaksi.status !== 'Lunas'
+                            transaksi.metodePembayaran !== 'Cash' && transaksi.status !== 'Lunas'
                                 ? `<button class="btn btn-primary btn-sm" onclick="showKonfirmasiModal(${index})">Konfirmasi</button>`
                                 : `<span class="badge bg-success">Lunas</span>`
                         }
