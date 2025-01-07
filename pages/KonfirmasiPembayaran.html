@@ -32,7 +32,7 @@
                 <p>Status Pembayaran: ${transaksi.status}</p>
                 <p>Metode Pembayaran: ${transaksi.metodePembayaran}</p>
                 ${transaksi.metodePembayaran !== 'Cash' ? 
-                    `<p>Bukti Pembayaran: <a href="${transaksi.buktiPembayaran}" target="_blank">Lihat Bukti</a></p>` : 
+                    `<p>Bukti Pembayaran: <a href="img/${transaksi.noInvoice}.jpg" target="_blank">Lihat Bukti</a></p>` : 
                     ''
                 }
             `;
@@ -40,7 +40,37 @@
 
         // Konfirmasi pembayaran
         document.getElementById('konfirmasiBtn').addEventListener('click', function() {
-            if (transaksi.metodePembayaran === 'Cash') {
+            if (transaksi.metodePembayaran !== 'Cash') {
+                // Verifikasi bukti pembayaran
+                const buktiPembayaran = `img/${transaksi.noInvoice}.jpg`;
+
+                // Cek jika bukti pembayaran ada dan sesuai
+                fetch(buktiPembayaran)
+                    .then(response => {
+                        if (response.ok) {
+                            transaksi.status = 'Lunas';
+                            alert('Pembayaran Terverifikasi, Status Lunas');
+                        } else {
+                            alert('Bukti Pembayaran Tidak Sesuai');
+                            return;
+                        }
+
+                        // Simpan perubahan status transaksi
+                        const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+                        const index = transaksiList.findIndex(t => t.noInvoice === transaksi.noInvoice);
+                        if (index !== -1) {
+                            transaksiList[index] = transaksi;
+                            localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+                        }
+
+                        // Kembali ke halaman pembayaran setelah konfirmasi
+                        window.location.href = 'pembayaran.html';
+                    })
+                    .catch(() => {
+                        alert('Bukti Pembayaran Tidak Ditemukan');
+                    });
+            } else {
+                // Untuk metode Cash, jika pembayaran sesuai jumlah, langsung Lunas
                 const bayar = prompt('Masukkan jumlah pembayaran:', 0);
                 if (parseFloat(bayar) >= transaksi.total) {
                     transaksi.status = 'Lunas';
@@ -51,22 +81,7 @@
                     alert('Jumlah bayar kurang dari total');
                     return;
                 }
-            } else {
-                // Verifikasi pembayaran untuk metode selain Cash
-                transaksi.status = 'Lunas';
-                alert('Pembayaran Terverifikasi');
             }
-
-            // Simpan perubahan status transaksi
-            const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
-            const index = transaksiList.findIndex(t => t.noInvoice === transaksi.noInvoice);
-            if (index !== -1) {
-                transaksiList[index] = transaksi;
-                localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-            }
-
-            // Kembali ke halaman pembayaran setelah konfirmasi
-            window.location.href = 'pembayaran.html';
         });
 
         // Kembali ke halaman pembayaran jika tidak ingin mengonfirmasi
