@@ -42,6 +42,12 @@
                         </div>
                     </div>
 
+                    <!-- Upload Bukti Pembayaran -->
+                    <div class="mb-3">
+                        <label for="buktiPembayaran" class="form-label">Bukti Pembayaran (Opsional)</label>
+                        <input type="file" class="form-control" id="buktiPembayaran" accept="image/*,application/pdf">
+                    </div>
+
                     <div class="text-end">
                         <button type="button" class="btn btn-success" id="prosesPembayaran">Proses Pembayaran</button>
                     </div>
@@ -61,6 +67,7 @@
                             <th>Metode Pembayaran</th>
                             <th>Total Pembayaran</th>
                             <th>Status</th>
+                            <th>Bukti Pembayaran</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -85,6 +92,7 @@
                     <td>${transaksi.metodePembayaran}</td>
                     <td>Rp ${transaksi.total.toFixed(2)}</td>
                     <td>${transaksi.status}</td>
+                    <td><a href="${transaksi.buktiPembayaran}" target="_blank">Lihat Bukti</a></td>
                 `;
                 transaksiTable.appendChild(row);
             });
@@ -96,7 +104,9 @@
             const metodePembayaran = document.getElementById('metodePembayaran').value;
             const jumlahBayar = parseInt(document.getElementById('jumlahBayar').value);
             const statusPembayaran = document.getElementById('statusPembayaran');
+            const buktiPembayaran = document.getElementById('buktiPembayaran').files[0];
             let status = '';
+            let buktiURL = '';
 
             if (jumlahBayar <= 0) {
                 alert('Jumlah bayar tidak boleh kurang dari atau sama dengan 0');
@@ -110,11 +120,26 @@
                 status = 'Proses Verifikasi';  // Status default untuk metode lain
             }
 
+            // Jika ada bukti pembayaran
+            if (buktiPembayaran) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    buktiURL = e.target.result;
+                    saveTransaksi(tanggalTransaksi, metodePembayaran, jumlahBayar, status, buktiURL);
+                };
+                reader.readAsDataURL(buktiPembayaran); // Mengubah file menjadi URL untuk ditampilkan
+            } else {
+                saveTransaksi(tanggalTransaksi, metodePembayaran, jumlahBayar, status, buktiURL);
+            }
+        });
+
+        function saveTransaksi(tanggal, metodePembayaran, jumlahBayar, status, buktiURL) {
             const transaksi = {
-                tanggal: tanggalTransaksi || new Date().toISOString().split('T')[0],
+                tanggal: tanggal || new Date().toISOString().split('T')[0],
                 metodePembayaran,
                 total: jumlahBayar,
-                status
+                status,
+                buktiPembayaran: buktiURL
             };
 
             // Simpan transaksi ke localStorage
@@ -122,9 +147,9 @@
             localStorage.setItem('transaksi', JSON.stringify(transaksiList));
 
             // Perbarui status pembayaran dan tampilkan transaksi
-            statusPembayaran.value = status;
+            document.getElementById('statusPembayaran').value = status;
             renderTransaksi();
-        });
+        }
 
         // Render transaksi saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
