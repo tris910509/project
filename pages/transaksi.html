@@ -11,7 +11,7 @@
         <h2 class="text-center">Transaksi</h2>
 
         <!-- Form Transaksi -->
-        <form id="transaksiForm" class="mb-4">
+        <form id="transaksiForm">
             <div class="mb-3">
                 <label for="pelanggan" class="form-label">Pilih Pelanggan</label>
                 <select class="form-select" id="pelanggan" required>
@@ -28,7 +28,7 @@
 
             <div class="mb-3">
                 <label for="jumlah" class="form-label">Jumlah</label>
-                <input type="number" class="form-control" id="jumlah" placeholder="Masukkan jumlah produk">
+                <input type="number" class="form-control" id="jumlah" placeholder="Masukkan jumlah produk" required>
             </div>
 
             <div class="mb-3">
@@ -83,7 +83,7 @@
         </form>
 
         <!-- Struk -->
-        <div id="strukPembayaran" class="d-none">
+        <div id="strukPembayaran" class="d-none mt-4">
             <h4>Struk Pembayaran</h4>
             <div id="strukContent"></div>
             <button class="btn btn-success mt-3" onclick="window.print()">Cetak Struk</button>
