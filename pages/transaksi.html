@@ -10,8 +10,14 @@
     <div class="container mt-5">
         <h2 class="text-center">Transaksi</h2>
 
-        <!-- Form Transaksi -->
         <form id="transaksiForm">
+            <!-- No Invoice -->
+            <div class="mb-3">
+                <label for="noInvoice" class="form-label">No Invoice</label>
+                <input type="text" class="form-control" id="noInvoice" value="INV-{{ Date.now() }}" readonly>
+            </div>
+
+            <!-- Pelanggan -->
             <div class="mb-3">
                 <label for="pelanggan" class="form-label">Pilih Pelanggan</label>
                 <select class="form-select" id="pelanggan" required>
@@ -19,6 +25,7 @@
                 </select>
             </div>
 
+            <!-- Produk -->
             <div class="mb-3">
                 <label for="produk" class="form-label">Pilih Produk</label>
                 <select class="form-select" id="produk" required>
@@ -26,18 +33,20 @@
                 </select>
             </div>
 
+            <!-- Jumlah dan Diskon -->
             <div class="mb-3">
                 <label for="jumlah" class="form-label">Jumlah</label>
                 <input type="number" class="form-control" id="jumlah" placeholder="Masukkan jumlah produk" required>
             </div>
-
             <div class="mb-3">
                 <label for="diskon" class="form-label">Diskon (%)</label>
-                <input type="number" class="form-control" id="diskon" placeholder="Masukkan diskon produk (opsional)">
+                <input type="number" class="form-control" id="diskon" placeholder="Diskon per produk" value="0">
             </div>
 
+            <!-- Tombol Tambah Keranjang -->
             <button type="button" class="btn btn-secondary mb-3" id="tambahKeranjang">Tambah ke Keranjang</button>
 
+            <!-- Tabel Keranjang -->
             <h4>Keranjang</h4>
             <table class="table table-striped" id="keranjangTable">
                 <thead>
@@ -54,11 +63,13 @@
                 <tbody></tbody>
             </table>
 
+            <!-- Total Pembayaran -->
             <div class="mb-3">
                 <label for="total" class="form-label">Total</label>
                 <input type="number" class="form-control" id="total" readonly>
             </div>
 
+            <!-- Metode Pembayaran -->
             <div class="mb-3">
                 <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
                 <select class="form-select" id="metodePembayaran" required>
@@ -69,20 +80,29 @@
                 </select>
             </div>
 
+            <!-- Jumlah yang Dibayar -->
             <div class="mb-3">
                 <label for="bayar" class="form-label">Jumlah Dibayar</label>
-                <input type="number" class="form-control" id="bayar" placeholder="Masukkan jumlah yang dibayar">
+                <input type="number" class="form-control" id="bayar" placeholder="Masukkan jumlah yang dibayar" required>
             </div>
 
+            <!-- Kembalian -->
             <div class="mb-3">
                 <label for="kembalian" class="form-label">Kembalian</label>
                 <input type="number" class="form-control" id="kembalian" readonly>
             </div>
 
+            <!-- Upload Bukti Pembayaran (hanya untuk Transfer, QR, Ewallet) -->
+            <div class="mb-3" id="uploadBuktiContainer" style="display:none;">
+                <label for="buktiPembayaran" class="form-label">Upload Bukti Pembayaran</label>
+                <input type="file" class="form-control" id="buktiPembayaran">
+            </div>
+
+            <!-- Tombol Proses Transaksi -->
             <button type="submit" class="btn btn-primary">Proses Transaksi</button>
         </form>
 
-        <!-- Struk -->
+        <!-- Struk Pembayaran -->
         <div id="strukPembayaran" class="d-none mt-4">
             <h4>Struk Pembayaran</h4>
             <div id="strukContent"></div>
@@ -96,7 +116,7 @@
         const produkList = JSON.parse(localStorage.getItem('produk')) || [];
         const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
 
-        // Render dropdown pelanggan
+        // Render Pelanggan
         function renderPelanggan() {
             const pelangganSelect = document.getElementById('pelanggan');
             pelangganList.forEach(pelanggan => {
@@ -107,7 +127,7 @@
             });
         }
 
-        // Render dropdown produk
+        // Render Produk
         function renderProduk() {
             const produkSelect = document.getElementById('produk');
             produkList.forEach(produk => {
@@ -118,7 +138,16 @@
             });
         }
 
-        // Tambah produk ke keranjang
+        // Show/Hide Upload Bukti Pembayaran berdasarkan metode
+        document.getElementById('metodePembayaran').addEventListener('change', function() {
+            const metodePembayaran = this.value;
+            if (metodePembayaran === 'Cash') {
+                document.getElementById('uploadBuktiContainer').style.display = 'none';
+            } else {
+                document.getElementById('uploadBuktiContainer').style.display = 'block';
+            }
+        });
+
         document.getElementById('tambahKeranjang').addEventListener('click', () => {
             const produk = JSON.parse(document.getElementById('produk').value);
             const jumlah = parseInt(document.getElementById('jumlah').value);
@@ -141,7 +170,6 @@
             }
         });
 
-        // Render keranjang
         function renderKeranjang() {
             const keranjangTable = document.querySelector('#keranjangTable tbody');
             keranjangTable.innerHTML = '';
@@ -167,7 +195,7 @@
             document.getElementById('total').value = total.toFixed(2);
         }
 
-        // Proses transaksi
+        // Handle submit form transaksi
         document.getElementById('transaksiForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
@@ -175,62 +203,52 @@
             const metodePembayaran = document.getElementById('metodePembayaran').value;
             const bayar = parseFloat(document.getElementById('bayar').value);
             const total = parseFloat(document.getElementById('total').value);
+            const noInvoice = document.getElementById('noInvoice').value;
+            const kembalian = bayar - total;
 
             let status;
             if (metodePembayaran === "Cash") {
                 status = bayar >= total ? 'Lunas' : 'Belum Lunas';
             } else {
-                status = 'Pending';
+                status = 'Sedang Proses Verifikasi';
             }
 
-            const kembalian = bayar - total;
-            document.getElementById('kembalian').value = kembalian >= 0 ? kembalian.toFixed(2) : 0;
-
             const transaksi = {
+                noInvoice,
                 pelanggan,
                 total,
                 metodePembayaran,
                 bayar,
                 kembalian,
-                status,
-                keranjang,
-                tanggal: new Date().toLocaleDateString()
+                status
             };
 
             transaksiList.push(transaksi);
             localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-            renderStruk(transaksi);
-            this.reset();
-            keranjang = [];
+
+            document.getElementById('strukContent').innerHTML = `
+                <p>No Invoice: ${noInvoice}</p>
+                <p>Pelanggan: ${pelanggan}</p>
+                <p>Total: Rp ${total}</p>
+                <p>Bayar: Rp ${bayar}</p>
+                <p>Kembalian: Rp ${kembalian.toFixed(2)}</p>
+                <p>Status: ${status}</p>
+            `;
+            document.getElementById('strukPembayaran').classList.remove('d-none');
             renderKeranjang();
         });
 
-        // Render struk
-        function renderStruk(transaksi) {
-            const strukContent = document.getElementById('strukContent');
-            strukContent.innerHTML = `
-                <p><strong>Pelanggan:</strong> ${transaksi.pelanggan}</p>
-                <p><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</p>
-                <p><strong>Total:</strong> Rp ${transaksi.total}</p>
-                <p><strong>Dibayar:</strong> Rp ${transaksi.bayar}</p>
-                <p><strong>Kembalian:</strong> Rp ${transaksi.kembalian}</p>
-                <p><strong>Tanggal Transaksi:</strong> ${transaksi.tanggal}</p>
-                <p><strong>Status:</strong> ${transaksi.status}</p>
-                <h5>Detail Produk</h5>
-                <ul>
-                    ${transaksi.keranjang.map(item => `<li>${item.nama} - ${item.jumlah} pcs - Rp ${item.subtotal.toFixed(2)}</li>`).join('')}
-                </ul>
-            `;
-            document.getElementById('strukPembayaran').classList.remove('d-none');
+        // Hapus Item Keranjang
+        function hapusKeranjang(index) {
+            keranjang.splice(index, 1);
+            renderKeranjang();
         }
 
+        // Render Data Pelanggan dan Produk ketika halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
             renderPelanggan();
             renderProduk();
-            renderKeranjang();
         });
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
