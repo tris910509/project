@@ -32,8 +32,22 @@
                 <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
                 <select class="form-select" id="metodePembayaran" required></select>
             </div>
+            <div class="mb-3">
+                <label for="diskon" class="form-label">Diskon (%)</label>
+                <input type="number" class="form-control" id="diskon" value="0" placeholder="Masukkan diskon" required>
+            </div>
+            <div class="mb-3">
+                <label for="jumlahBayar" class="form-label">Jumlah Bayar</label>
+                <input type="number" class="form-control" id="jumlahBayar" placeholder="Masukkan jumlah bayar" required>
+            </div>
             <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
         </form>
+
+        <h4>Rincian Pembayaran</h4>
+        <p id="totalHargaText"></p>
+        <p id="diskonText"></p>
+        <p id="totalYangHarusDibayarText"></p>
+        <p id="kembalianText"></p>
 
         <table class="table table-striped" id="transaksiTable">
             <thead>
@@ -42,6 +56,8 @@
                     <th>Produk</th>
                     <th>Jumlah</th>
                     <th>Total Harga</th>
+                    <th>Diskon</th>
+                    <th>Total yang Harus Dibayar</th>
                     <th>Metode Pembayaran</th>
                     <th>Action</th>
                 </tr>
@@ -101,6 +117,8 @@
                     <td>${item.produk}</td>
                     <td>${item.jumlah}</td>
                     <td>${item.totalHarga}</td>
+                    <td>${item.diskon}%</td>
+                    <td>${item.totalYangHarusDibayar}</td>
                     <td>${item.metodePembayaran}</td>
                     <td>
                         <button class="btn btn-warning btn-sm" onclick="editTransaksi(${index})">Edit</button>
@@ -115,8 +133,10 @@
             e.preventDefault();
 
             const produk = document.getElementById('produk').value;
-            const jumlah = document.getElementById('jumlah').value;
+            const jumlah = parseInt(document.getElementById('jumlah').value);
             const metodePembayaran = document.getElementById('metodePembayaran').value;
+            const diskon = parseInt(document.getElementById('diskon').value);
+            const jumlahBayar = parseInt(document.getElementById('jumlahBayar').value);
 
             const produkList = getProduk();
             const selectedProduk = produkList.find(p => p.nama === produk);
@@ -127,10 +147,27 @@
             }
 
             const totalHarga = selectedProduk.harga * jumlah;
+            const diskonAmount = (totalHarga * diskon) / 100;
+            const totalYangHarusDibayar = totalHarga - diskonAmount;
+            const kembalian = jumlahBayar - totalYangHarusDibayar;
 
             const transaksiList = getTransaksi();
-            transaksiList.push({ produk, jumlah, totalHarga, metodePembayaran });
+            transaksiList.push({
+                produk,
+                jumlah,
+                totalHarga,
+                diskon,
+                totalYangHarusDibayar,
+                kembalian,
+                metodePembayaran
+            });
             saveTransaksi(transaksiList);
+
+            // Menampilkan rincian pembayaran
+            document.getElementById('totalHargaText').textContent = `Total Harga: Rp ${totalHarga}`;
+            document.getElementById('diskonText').textContent = `Diskon: ${diskon}% (Rp ${diskonAmount})`;
+            document.getElementById('totalYangHarusDibayarText').textContent = `Total yang harus dibayar: Rp ${totalYangHarusDibayar}`;
+            document.getElementById('kembalianText').textContent = `Kembalian: Rp ${kembalian}`;
 
             this.reset();
             renderTransaksi();
@@ -150,6 +187,8 @@
             document.getElementById('produk').value = transaksi.produk;
             document.getElementById('jumlah').value = transaksi.jumlah;
             document.getElementById('metodePembayaran').value = transaksi.metodePembayaran;
+            document.getElementById('diskon').value = transaksi.diskon;
+            document.getElementById('jumlahBayar').value = transaksi.totalYangHarusDibayar;
 
             transaksiList.splice(index, 1);
             saveTransaksi(transaksiList);
