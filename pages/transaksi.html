@@ -10,7 +10,7 @@
     <script>
         // Periksa peran pengguna
         const role = localStorage.getItem('userRole');
-        const allowedRoles = ['Admin', 'Member'];
+        const allowedRoles = ['Admin', 'User'];
         if (!allowedRoles.includes(role)) {
             alert('Anda tidak memiliki akses ke halaman ini!');
             window.location.href = 'login.html';
@@ -21,18 +21,18 @@
         <h2 class="text-center">Transaksi</h2>
         <form id="transaksiForm" class="mb-4">
             <div class="mb-3">
-                <label for="produk" class="form-label">Nama Produk</label>
-                <input type="text" class="form-control" id="produk" placeholder="Masukkan nama produk" required>
+                <label for="produk" class="form-label">Produk</label>
+                <select class="form-select" id="produk" required></select>
             </div>
             <div class="mb-3">
                 <label for="jumlah" class="form-label">Jumlah</label>
                 <input type="number" class="form-control" id="jumlah" placeholder="Masukkan jumlah" required>
             </div>
             <div class="mb-3">
-                <label for="harga" class="form-label">Harga</label>
-                <input type="number" class="form-control" id="harga" placeholder="Masukkan harga" required>
+                <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
+                <select class="form-select" id="metodePembayaran" required></select>
             </div>
-            <button type="submit" class="btn btn-primary">Tambah Transaksi</button>
+            <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
         </form>
 
         <table class="table table-striped" id="transaksiTable">
@@ -42,6 +42,7 @@
                     <th>Produk</th>
                     <th>Jumlah</th>
                     <th>Total Harga</th>
+                    <th>Metode Pembayaran</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -50,12 +51,42 @@
     </div>
 
     <script>
+        function getProduk() {
+            return JSON.parse(localStorage.getItem('produk')) || [];
+        }
+
+        function getMetodePembayaran() {
+            return JSON.parse(localStorage.getItem('metodePembayaran')) || [];
+        }
+
         function getTransaksi() {
             return JSON.parse(localStorage.getItem('transaksi')) || [];
         }
 
-        function saveTransaksi(transaksi) {
-            localStorage.setItem('transaksi', JSON.stringify(transaksi));
+        function saveTransaksi(data) {
+            localStorage.setItem('transaksi', JSON.stringify(data));
+        }
+
+        function renderDropdowns() {
+            const produkList = getProduk();
+            const metodeList = getMetodePembayaran();
+
+            const produkDropdown = document.getElementById('produk');
+            const metodeDropdown = document.getElementById('metodePembayaran');
+
+            produkList.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.nama;
+                option.textContent = item.nama;
+                produkDropdown.appendChild(option);
+            });
+
+            metodeList.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.nama;
+                option.textContent = item.nama;
+                metodeDropdown.appendChild(option);
+            });
         }
 
         function renderTransaksi() {
@@ -70,7 +101,9 @@
                     <td>${item.produk}</td>
                     <td>${item.jumlah}</td>
                     <td>${item.totalHarga}</td>
+                    <td>${item.metodePembayaran}</td>
                     <td>
+                        <button class="btn btn-warning btn-sm" onclick="editTransaksi(${index})">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteTransaksi(${index})">Delete</button>
                     </td>
                 `;
@@ -82,12 +115,21 @@
             e.preventDefault();
 
             const produk = document.getElementById('produk').value;
-            const jumlah = parseInt(document.getElementById('jumlah').value);
-            const harga = parseInt(document.getElementById('harga').value);
-            const totalHarga = jumlah * harga;
+            const jumlah = document.getElementById('jumlah').value;
+            const metodePembayaran = document.getElementById('metodePembayaran').value;
+
+            const produkList = getProduk();
+            const selectedProduk = produkList.find(p => p.nama === produk);
+
+            if (!selectedProduk) {
+                alert('Produk tidak ditemukan!');
+                return;
+            }
+
+            const totalHarga = selectedProduk.harga * jumlah;
 
             const transaksiList = getTransaksi();
-            transaksiList.push({ produk, jumlah, totalHarga });
+            transaksiList.push({ produk, jumlah, totalHarga, metodePembayaran });
             saveTransaksi(transaksiList);
 
             this.reset();
@@ -101,7 +143,23 @@
             renderTransaksi();
         }
 
-        document.addEventListener('DOMContentLoaded', renderTransaksi);
+        function editTransaksi(index) {
+            const transaksiList = getTransaksi();
+            const transaksi = transaksiList[index];
+
+            document.getElementById('produk').value = transaksi.produk;
+            document.getElementById('jumlah').value = transaksi.jumlah;
+            document.getElementById('metodePembayaran').value = transaksi.metodePembayaran;
+
+            transaksiList.splice(index, 1);
+            saveTransaksi(transaksiList);
+            renderTransaksi();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDropdowns();
+            renderTransaksi();
+        });
     </script>
 </body>
 </html>
