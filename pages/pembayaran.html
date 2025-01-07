@@ -3,23 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halaman Pembayaran</title>
+    <title>Konfirmasi Pembayaran</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
-        <h2 class="text-center">Pembayaran Transaksi</h2>
+        <h2 class="text-center">Konfirmasi Pembayaran</h2>
 
-        <table class="table table-striped" id="transaksiTable">
+        <!-- Filter Metode Pembayaran -->
+        <div class="mb-3">
+            <label for="filterMetodePembayaran" class="form-label">Filter Metode Pembayaran</label>
+            <select class="form-select" id="filterMetodePembayaran">
+                <option value="Transfer">Transfer</option>
+                <option value="QR">QR</option>
+                <option value="Ewallet">Ewallet</option>
+            </select>
+        </div>
+
+        <!-- Tabel Pembayaran -->
+        <table class="table table-striped" id="pembayaranTable">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>No Invoice</th>
+                    <th>No. Invoice</th>
                     <th>Pelanggan</th>
                     <th>Total</th>
                     <th>Status</th>
-                    <th>Metode Pembayaran</th>
-                    <th>Aksi</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -29,57 +38,46 @@
     <script>
         const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
 
-        // Render transaksi
+        // Render transaksi untuk konfirmasi pembayaran
         function renderTransaksi() {
-            const transaksiTable = document.getElementById('transaksiTable').getElementsByTagName('tbody')[0];
-            transaksiTable.innerHTML = '';
+            const filterMetodePembayaran = document.getElementById('filterMetodePembayaran').value;
+            const filteredTransaksi = transaksiList.filter(transaksi => transaksi.metodePembayaran === filterMetodePembayaran && transaksi.status === 'Pending');
 
-            transaksiList.forEach((transaksi, index) => {
+            const pembayaranTable = document.querySelector('#pembayaranTable tbody');
+            pembayaranTable.innerHTML = '';
+
+            filteredTransaksi.forEach((transaksi) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${transaksi.noInvoice}</td>
+                    <td>${transaksi.invoice}</td>
                     <td>${transaksi.pelanggan}</td>
                     <td>Rp ${transaksi.total}</td>
                     <td>${transaksi.status}</td>
-                    <td>${transaksi.metodePembayaran}</td>
                     <td>
-                        ${transaksi.metodePembayaran !== 'Cash' && transaksi.status === 'Pending' ?
-                            `<button class="btn btn-warning btn-sm" onclick="pindahKeKonfirmasi(${index})">Konfirmasi Pembayaran</button>` :
-                            ''
-                        }
-                        ${transaksi.status === 'Lunas' ? 
-                            `<button class="btn btn-info btn-sm" onclick="lihatStruk(${index})">Lihat Struk</button>` : 
-                            ''
-                        }
+                        <button class="btn btn-success btn-sm" onclick="konfirmasiLunas('${transaksi.invoice}')">Konfirmasi Lunas</button>
                     </td>
                 `;
-                transaksiTable.appendChild(row);
+                pembayaranTable.appendChild(row);
             });
         }
 
-        // Pindahkan transaksi ke halaman konfirmasi pembayaran
-        function pindahKeKonfirmasi(index) {
-            const transaksi = transaksiList[index];
-            sessionStorage.setItem('transaksiUntukKonfirmasi', JSON.stringify(transaksi));
-            window.location.href = 'KonfirmasiPembayaran.html';
+        // Konfirmasi pembayaran lunas
+        function konfirmasiLunas(invoice) {
+            const transaksi = transaksiList.find(transaksi => transaksi.invoice === invoice);
+            if (transaksi) {
+                transaksi.status = 'Lunas';
+                localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+                renderTransaksi();
+                alert('Pembayaran berhasil dikonfirmasi');
+            }
         }
 
-        // Lihat struk pembayaran (untuk transaksi yang sudah lunas)
-        function lihatStruk(index) {
-            const transaksi = transaksiList[index];
-            alert(`
-                Struk Pembayaran\n
-                No Invoice: ${transaksi.noInvoice}\n
-                Pelanggan: ${transaksi.pelanggan}\n
-                Total: Rp ${transaksi.total}\n
-                Bayar: Rp ${transaksi.bayar}\n
-                Kembalian: Rp ${transaksi.kembalian}\n
-                Status: ${transaksi.status}
-            `);
-        }
+        // Filter transaksi saat halaman dimuat
+        document.getElementById('filterMetodePembayaran').addEventListener('change', renderTransaksi);
 
         document.addEventListener('DOMContentLoaded', renderTransaksi);
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
