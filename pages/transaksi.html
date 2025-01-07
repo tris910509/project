@@ -185,6 +185,7 @@
                 totalKeranjang += item.totalHarga;
             });
 
+            // Perhitungan Diskon
             const diskonAmount = (totalKeranjang * diskon) / 100;
             const totalYangHarusDibayar = totalKeranjang - diskonAmount;
             const kembalian = jumlahBayar - totalYangHarusDibayar;
