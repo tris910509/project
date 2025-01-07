@@ -177,10 +177,10 @@
             const total = parseFloat(document.getElementById('total').value);
 
             let status;
-            if (bayar >= total) {
-                status = 'Lunas';
+            if (metodePembayaran === "Cash") {
+                status = bayar >= total ? 'Lunas' : 'Belum Lunas';
             } else {
-                status = 'Belum Lunas';
+                status = 'Pending';
             }
 
             const kembalian = bayar - total;
