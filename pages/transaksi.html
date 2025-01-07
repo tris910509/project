@@ -48,7 +48,7 @@
                         <th>Jumlah</th>
                         <th>Diskon (%)</th>
                         <th>Subtotal</th>
-                        <th>Action</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -177,10 +177,10 @@
             const total = parseFloat(document.getElementById('total').value);
 
             let status;
-            if (metodePembayaran === 'Cash') {
-                status = bayar >= total ? 'Lunas' : 'Belum Lunas';
+            if (bayar >= total) {
+                status = 'Lunas';
             } else {
-                status = 'Pending Konfirmasi';
+                status = 'Belum Lunas';
             }
 
             const kembalian = bayar - total;
@@ -213,6 +213,7 @@
                 <p><strong>Total:</strong> Rp ${transaksi.total}</p>
                 <p><strong>Dibayar:</strong> Rp ${transaksi.bayar}</p>
                 <p><strong>Kembalian:</strong> Rp ${transaksi.kembalian}</p>
+                <p><strong>Status:</strong> ${transaksi.status}</p>
                 <h5>Detail Produk</h5>
                 <ul>
                     ${transaksi.keranjang.map(item => `<li>${item.nama} - ${item.jumlah} pcs - Rp ${item.subtotal.toFixed(2)}</li>`).join('')}
