@@ -3,91 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan</title>
+    <title>Laporan Transaksi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Untuk grafik -->
 </head>
 <body>
-    <script>
-        // Periksa peran pengguna
-        const role = localStorage.getItem('userRole');
-        const allowedRoles = ['Admin'];
-        if (!allowedRoles.includes(role)) {
-            alert('Anda tidak memiliki akses ke halaman ini!');
-            window.location.href = 'login.html';
-        }
-    </script>
-
     <div class="container mt-5">
-        <h2 class="text-center">Laporan</h2>
-        <form id="laporanForm" class="mb-4">
-            <div class="mb-3">
-                <label for="jenisLaporan" class="form-label">Jenis Laporan</label>
-                <select id="jenisLaporan" class="form-select">
-                    <option value="harian">Harian</option>
-                    <option value="bulanan">Bulanan</option>
-                    <option value="tahunan">Tahunan</option>
+        <h2 class="text-center">Laporan Transaksi</h2>
+
+        <!-- Filter Laporan -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <label for="filterTipe" class="form-label">Tipe Laporan</label>
+                <select class="form-select" id="filterTipe">
+                    <option value="Harian">Harian</option>
+                    <option value="Bulanan">Bulanan</option>
+                    <option value="Tahunan">Tahunan</option>
                 </select>
             </div>
-            <button type="button" class="btn btn-primary" onclick="generateLaporan()">Tampilkan Laporan</button>
-        </form>
+            <div class="col-md-3">
+                <label for="filterTanggal" class="form-label">Tanggal</label>
+                <input type="date" class="form-control" id="filterTanggal">
+            </div>
+            <div class="col-md-3">
+                <label for="filterPelanggan" class="form-label">Pelanggan</label>
+                <select class="form-select" id="filterPelanggan">
+                    <option value="Semua">Semua</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filterMetode" class="form-label">Metode Pembayaran</label>
+                <select class="form-select" id="filterMetode">
+                    <option value="Semua">Semua</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Transfer">Transfer</option>
+                    <option value="QR">QR</option>
+                    <option value="Ewallet">Ewallet</option>
+                </select>
+            </div>
+        </div>
 
-        <h3 class="mt-5" id="laporanTitle"></h3>
-        <table class="table table-striped" id="laporanTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Produk</th>
-                    <th>Jumlah</th>
-                    <th>Total Harga</th>
-                </tr>
-            </thead>
-            <tbody id="laporanTableBody"></tbody>
-        </table>
+        <!-- Tombol Filter -->
+        <div class="text-end mt-3">
+            <button class="btn btn-primary" id="filterButton">Tampilkan Laporan</button>
+        </div>
+
+        <!-- Tabel Laporan -->
+        <div class="mt-4">
+            <h4>Data Laporan</h4>
+            <table class="table table-striped" id="laporanTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tanggal</th>
+                        <th>Pelanggan</th>
+                        <th>Produk</th>
+                        <th>Jumlah</th>
+                        <th>Total</th>
+                        <th>Metode Pembayaran</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Grafik Laporan -->
+        <div class="mt-5">
+            <h4>Grafik Pendapatan Bulanan</h4>
+            <canvas id="grafikLaporan" height="100"></canvas>
+        </div>
+
+        <!-- Total dan Ekspor -->
+        <div class="mt-4 text-end">
+            <h5 id="totalPendapatan">Total Pendapatan: Rp 0</h5>
+            <h5 id="totalTransaksi">Total Transaksi: 0</h5>
+            <button class="btn btn-success" id="exportExcel">Ekspor ke Excel</button>
+            <button class="btn btn-danger" id="exportPDF">Ekspor ke PDF</button>
+        </div>
     </div>
 
     <script>
-        function getTransaksi() {
-            return JSON.parse(localStorage.getItem('transaksi')) || [];
+        const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+        const pelangganList = JSON.parse(localStorage.getItem('pelanggan')) || [];
+
+        // Render pelanggan ke filter
+        function renderPelangganFilter() {
+            const pelangganFilter = document.getElementById('filterPelanggan');
+            pelangganList.forEach(pelanggan => {
+                const option = document.createElement('option');
+                option.value = pelanggan.nama;
+                option.textContent = pelanggan.nama;
+                pelangganFilter.appendChild(option);
+            });
         }
 
-        function generateLaporan() {
-            const jenisLaporan = document.getElementById('jenisLaporan').value;
-            const laporanTitle = document.getElementById('laporanTitle');
-            const laporanTableBody = document.getElementById('laporanTableBody');
-            const transaksiList = getTransaksi();
+        // Filter laporan berdasarkan tipe, tanggal, pelanggan, dan metode pembayaran
+        function filterLaporan() {
+            const tipe = document.getElementById('filterTipe').value;
+            const tanggal = document.getElementById('filterTanggal').value;
+            const pelanggan = document.getElementById('filterPelanggan').value;
+            const metode = document.getElementById('filterMetode').value;
 
-            laporanTableBody.innerHTML = '';
+            const laporanTable = document.querySelector('#laporanTable tbody');
+            laporanTable.innerHTML = '';
 
-            if (transaksiList.length === 0) {
-                laporanTitle.textContent = 'Tidak ada transaksi untuk ditampilkan.';
+            if (!tanggal) {
+                alert('Pilih tanggal terlebih dahulu.');
                 return;
             }
 
-            let filteredTransaksi = transaksiList;
+            let filteredTransaksi = transaksiList.filter(transaksi => {
+                const transaksiDate = new Date(transaksi.date);
+                const filterDate = new Date(tanggal);
 
-            switch (jenisLaporan) {
-                case 'harian':
-                    laporanTitle.textContent = 'Laporan Harian';
-                    break;
-                case 'bulanan':
-                    laporanTitle.textContent = 'Laporan Bulanan';
-                    break;
-                case 'tahunan':
-                    laporanTitle.textContent = 'Laporan Tahunan';
-                    break;
-            }
+                // Filter berdasarkan tipe
+                let matchTipe = false;
+                if (tipe === 'Harian') {
+                    matchTipe = transaksiDate.toDateString() === filterDate.toDateString();
+                } else if (tipe === 'Bulanan') {
+                    matchTipe =
+                        transaksiDate.getMonth() === filterDate.getMonth() &&
+                        transaksiDate.getFullYear() === filterDate.getFullYear();
+                } else if (tipe === 'Tahunan') {
+                    matchTipe = transaksiDate.getFullYear() === filterDate.getFullYear();
+                }
 
-            filteredTransaksi.forEach((item, index) => {
+                // Filter pelanggan dan metode pembayaran
+                const matchPelanggan = pelanggan === 'Semua' || transaksi.pelanggan === pelanggan;
+                const matchMetode = metode === 'Semua' || transaksi.metodePembayaran === metode;
+
+                return matchTipe && matchPelanggan && matchMetode;
+            });
+
+            // Tampilkan data ke tabel
+            let totalPendapatan = 0;
+            filteredTransaksi.forEach((transaksi, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${item.produk}</td>
-                    <td>${item.jumlah}</td>
-                    <td>${item.totalHarga}</td>
+                    <td>${new Date(transaksi.date).toLocaleDateString()}</td>
+                    <td>${transaksi.pelanggan}</td>
+                    <td>${transaksi.keranjang.map(item => item.nama).join(', ')}</td>
+                    <td>${transaksi.keranjang.reduce((sum, item) => sum + item.jumlah, 0)}</td>
+                    <td>Rp ${transaksi.total.toFixed(2)}</td>
+                    <td>${transaksi.metodePembayaran}</td>
+                    <td>${transaksi.status}</td>
                 `;
-                laporanTableBody.appendChild(row);
+                laporanTable.appendChild(row);
+                totalPendapatan += transaksi.total;
+            });
+
+            // Update total pendapatan dan transaksi
+            document.getElementById('totalPendapatan').textContent = `Total Pendapatan: Rp ${totalPendapatan.toFixed(2)}`;
+            document.getElementById('totalTransaksi').textContent = `Total Transaksi: ${filteredTransaksi.length}`;
+
+            // Update grafik
+            updateGrafik(filteredTransaksi);
+        }
+
+        // Update grafik pendapatan bulanan
+        function updateGrafik(data) {
+            const ctx = document.getElementById('grafikLaporan').getContext('2d');
+            const labels = [...new Set(data.map(transaksi => new Date(transaksi.date).toLocaleDateString()))];
+            const pendapatan = labels.map(label => {
+                return data
+                    .filter(transaksi => new Date(transaksi.date).toLocaleDateString() === label)
+                    .reduce((sum, transaksi) => sum + transaksi.total, 0);
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Pendapatan (Rp)',
+                            data: pendapatan,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                        },
+                    },
+                },
             });
         }
+
+        // Render pelanggan saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPelangganFilter();
+        });
+
+        // Event listener untuk tombol filter
+        document.getElementById('filterButton').addEventListener('click', filterLaporan);
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
