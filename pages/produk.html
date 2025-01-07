@@ -10,7 +10,7 @@
     <script>
         // Periksa peran pengguna
         const role = localStorage.getItem('userRole');
-        const allowedRoles = ['Admin', 'Member', 'Pelanggan Umum'];
+        const allowedRoles = ['Admin'];
         if (!allowedRoles.includes(role)) {
             alert('Anda tidak memiliki akses ke halaman ini!');
             window.location.href = 'login.html';
@@ -19,23 +19,22 @@
 
     <div class="container mt-5">
         <h2 class="text-center">Produk</h2>
-        <!-- CRUD Produk sama seperti implementasi sebelumnya -->
         <form id="produkForm" class="mb-4">
             <div class="mb-3">
-                <label for="nama-produk" class="form-label">Nama Produk</label>
-                <input type="text" class="form-control" id="nama-produk" placeholder="Masukkan nama produk" required>
+                <label for="namaProduk" class="form-label">Nama Produk</label>
+                <input type="text" class="form-control" id="namaProduk" placeholder="Masukkan nama produk" required>
             </div>
             <div class="mb-3">
                 <label for="kategori" class="form-label">Kategori</label>
-                <input type="text" class="form-control" id="kategori" placeholder="Masukkan kategori produk" required>
+                <select class="form-select" id="kategori" required></select>
+            </div>
+            <div class="mb-3">
+                <label for="suplayer" class="form-label">Suplayer</label>
+                <select class="form-select" id="suplayer" required></select>
             </div>
             <div class="mb-3">
                 <label for="harga" class="form-label">Harga</label>
                 <input type="number" class="form-control" id="harga" placeholder="Masukkan harga produk" required>
-            </div>
-            <div class="mb-3">
-                <label for="stok" class="form-label">Stok</label>
-                <input type="number" class="form-control" id="stok" placeholder="Masukkan stok produk" required>
             </div>
             <button type="submit" class="btn btn-primary">Simpan</button>
         </form>
@@ -46,8 +45,8 @@
                     <th>#</th>
                     <th>Nama Produk</th>
                     <th>Kategori</th>
+                    <th>Suplayer</th>
                     <th>Harga</th>
-                    <th>Stok</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -56,12 +55,42 @@
     </div>
 
     <script>
+        function getKategori() {
+            return JSON.parse(localStorage.getItem('kategori')) || [];
+        }
+
+        function getSuplayer() {
+            return JSON.parse(localStorage.getItem('suplayer')) || [];
+        }
+
         function getProduk() {
             return JSON.parse(localStorage.getItem('produk')) || [];
         }
 
-        function saveProduk(produk) {
-            localStorage.setItem('produk', JSON.stringify(produk));
+        function saveProduk(data) {
+            localStorage.setItem('produk', JSON.stringify(data));
+        }
+
+        function renderDropdowns() {
+            const kategoriList = getKategori();
+            const suplayerList = getSuplayer();
+
+            const kategoriDropdown = document.getElementById('kategori');
+            const suplayerDropdown = document.getElementById('suplayer');
+
+            kategoriList.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.nama;
+                option.textContent = item.nama;
+                kategoriDropdown.appendChild(option);
+            });
+
+            suplayerList.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.nama;
+                option.textContent = item.nama;
+                suplayerDropdown.appendChild(option);
+            });
         }
 
         function renderProduk() {
@@ -75,8 +104,8 @@
                     <td>${index + 1}</td>
                     <td>${item.nama}</td>
                     <td>${item.kategori}</td>
+                    <td>${item.suplayer}</td>
                     <td>${item.harga}</td>
-                    <td>${item.stok}</td>
                     <td>
                         <button class="btn btn-warning btn-sm" onclick="editProduk(${index})">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteProduk(${index})">Delete</button>
@@ -89,13 +118,13 @@
         document.getElementById('produkForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const nama = document.getElementById('nama-produk').value;
+            const nama = document.getElementById('namaProduk').value;
             const kategori = document.getElementById('kategori').value;
+            const suplayer = document.getElementById('suplayer').value;
             const harga = document.getElementById('harga').value;
-            const stok = document.getElementById('stok').value;
 
             const produkList = getProduk();
-            produkList.push({ nama, kategori, harga, stok });
+            produkList.push({ nama, kategori, suplayer, harga });
             saveProduk(produkList);
 
             this.reset();
@@ -113,17 +142,20 @@
             const produkList = getProduk();
             const produk = produkList[index];
 
-            document.getElementById('nama-produk').value = produk.nama;
+            document.getElementById('namaProduk').value = produk.nama;
             document.getElementById('kategori').value = produk.kategori;
+            document.getElementById('suplayer').value = produk.suplayer;
             document.getElementById('harga').value = produk.harga;
-            document.getElementById('stok').value = produk.stok;
 
             produkList.splice(index, 1);
             saveProduk(produkList);
             renderProduk();
         }
 
-        document.addEventListener('DOMContentLoaded', renderProduk);
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDropdowns();
+            renderProduk();
+        });
     </script>
 </body>
 </html>
