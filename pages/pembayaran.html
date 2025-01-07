@@ -17,8 +17,8 @@
                 <form id="pembayaranForm">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="tanggalTransaksi" class="form-label">Tanggal Transaksi</label>
-                            <input type="date" class="form-control" id="tanggalTransaksi">
+                            <label for="tanggalPembayaran" class="form-label">Tanggal Pembayaran</label>
+                            <input type="date" class="form-control" id="tanggalPembayaran">
                         </div>
                         <div class="col-md-6">
                             <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
@@ -42,32 +42,26 @@
                         </div>
                     </div>
 
-                    <!-- Upload Bukti Pembayaran -->
-                    <div class="mb-3">
-                        <label for="buktiPembayaran" class="form-label">Bukti Pembayaran (Opsional)</label>
-                        <input type="file" class="form-control" id="buktiPembayaran" accept="image/*,application/pdf">
-                    </div>
-
                     <div class="text-end">
-                        <button type="button" class="btn btn-success" id="prosesPembayaran">Proses Pembayaran</button>
+                        <button type="button" class="btn btn-success" id="konfirmasiPembayaran">Konfirmasi Pembayaran</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Tabel Transaksi -->
+        <!-- Tabel Pembayaran -->
         <div class="card mt-4">
             <div class="card-body">
-                <h5 class="card-title">Detail Transaksi</h5>
-                <table class="table table-striped" id="transaksiTable">
+                <h5 class="card-title">Daftar Pembayaran</h5>
+                <table class="table table-striped" id="pembayaranTable">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Tanggal</th>
+                            <th>Tanggal Pembayaran</th>
                             <th>Metode Pembayaran</th>
                             <th>Total Pembayaran</th>
                             <th>Status</th>
-                            <th>Bukti Pembayaran</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -77,83 +71,63 @@
     </div>
 
     <script>
-        let transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+        let pembayaranList = JSON.parse(localStorage.getItem('pembayaran')) || [];
 
-        // Tampilkan transaksi yang sudah ada
-        function renderTransaksi() {
-            const transaksiTable = document.querySelector('#transaksiTable tbody');
-            transaksiTable.innerHTML = '';
+        // Tampilkan pembayaran yang sudah ada
+        function renderPembayaran() {
+            const pembayaranTable = document.querySelector('#pembayaranTable tbody');
+            pembayaranTable.innerHTML = '';
 
-            transaksiList.forEach((transaksi, index) => {
+            pembayaranList.forEach((pembayaran, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${transaksi.tanggal}</td>
-                    <td>${transaksi.metodePembayaran}</td>
-                    <td>Rp ${transaksi.total.toFixed(2)}</td>
-                    <td>${transaksi.status}</td>
-                    <td><a href="${transaksi.buktiPembayaran}" target="_blank">Lihat Bukti</a></td>
+                    <td>${pembayaran.tanggal}</td>
+                    <td>${pembayaran.metodePembayaran}</td>
+                    <td>Rp ${pembayaran.total.toFixed(2)}</td>
+                    <td>${pembayaran.status}</td>
+                    <td><button class="btn btn-warning" onclick="konfirmasiPembayaran(${index})">Konfirmasi</button></td>
                 `;
-                transaksiTable.appendChild(row);
+                pembayaranTable.appendChild(row);
             });
         }
 
-        // Proses Pembayaran
-        document.getElementById('prosesPembayaran').addEventListener('click', () => {
-            const tanggalTransaksi = document.getElementById('tanggalTransaksi').value;
+        // Konfirmasi Pembayaran
+        function konfirmasiPembayaran(index) {
+            const pembayaran = pembayaranList[index];
+            pembayaran.status = 'Lunas'; // Pembayaran dikonfirmasi sebagai lunas
+            localStorage.setItem('pembayaran', JSON.stringify(pembayaranList));
+            renderPembayaran();
+        }
+
+        // Konfirmasi pembayaran baru
+        document.getElementById('konfirmasiPembayaran').addEventListener('click', () => {
+            const tanggalPembayaran = document.getElementById('tanggalPembayaran').value;
             const metodePembayaran = document.getElementById('metodePembayaran').value;
             const jumlahBayar = parseInt(document.getElementById('jumlahBayar').value);
             const statusPembayaran = document.getElementById('statusPembayaran');
-            const buktiPembayaran = document.getElementById('buktiPembayaran').files[0];
-            let status = '';
-            let buktiURL = '';
+            const status = 'Pending'; // Status pembayaran awal
 
             if (jumlahBayar <= 0) {
                 alert('Jumlah bayar tidak boleh kurang dari atau sama dengan 0');
                 return;
             }
 
-            // Tentukan status pembayaran
-            if (metodePembayaran === 'Cash') {
-                status = jumlahBayar >= 1000000 ? 'Lunas' : 'Belum Lunas';
-            } else {
-                status = 'Proses Verifikasi';  // Status default untuk metode lain
-            }
-
-            // Jika ada bukti pembayaran
-            if (buktiPembayaran) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    buktiURL = e.target.result;
-                    saveTransaksi(tanggalTransaksi, metodePembayaran, jumlahBayar, status, buktiURL);
-                };
-                reader.readAsDataURL(buktiPembayaran); // Mengubah file menjadi URL untuk ditampilkan
-            } else {
-                saveTransaksi(tanggalTransaksi, metodePembayaran, jumlahBayar, status, buktiURL);
-            }
-        });
-
-        function saveTransaksi(tanggal, metodePembayaran, jumlahBayar, status, buktiURL) {
-            const transaksi = {
-                tanggal: tanggal || new Date().toISOString().split('T')[0],
+            const pembayaran = {
+                tanggal: tanggalPembayaran || new Date().toISOString().split('T')[0],
                 metodePembayaran,
                 total: jumlahBayar,
-                status,
-                buktiPembayaran: buktiURL
+                status
             };
 
-            // Simpan transaksi ke localStorage
-            transaksiList.push(transaksi);
-            localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+            pembayaranList.push(pembayaran);
+            localStorage.setItem('pembayaran', JSON.stringify(pembayaranList));
+            renderPembayaran();
+        });
 
-            // Perbarui status pembayaran dan tampilkan transaksi
-            document.getElementById('statusPembayaran').value = status;
-            renderTransaksi();
-        }
-
-        // Render transaksi saat halaman dimuat
+        // Render pembayaran saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
-            renderTransaksi();
+            renderPembayaran();
         });
     </script>
 
