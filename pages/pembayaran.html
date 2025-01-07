@@ -3,64 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pembayaran</title>
+    <title>Pembayaran Transaksi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container mt-5">
-        <h2 class="text-center">Halaman Pembayaran</h2>
+    <script>
+        // Periksa peran pengguna
+        const role = localStorage.getItem('userRole');
+        const allowedRoles = ['Admin', 'Kasir'];
+        if (!allowedRoles.includes(role)) {
+            alert('Anda tidak memiliki akses ke halaman ini!');
+            window.location.href = 'login.html';
+        }
+    </script>
 
-        <h4>Daftar Transaksi</h4>
-        <table class="table table-striped" id="transaksiTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Pelanggan</th>
-                    <th>Metode Pembayaran</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    <div class="container mt-5">
+        <h2 class="text-center">Pembayaran Transaksi</h2>
+
+        <!-- Form Pembayaran -->
+        <form id="pembayaranForm">
+            <div class="mb-3">
+                <label for="transaksiId" class="form-label">ID Transaksi</label>
+                <input type="text" class="form-control" id="transaksiId" required placeholder="Masukkan ID Transaksi">
+            </div>
+
+            <div class="mb-3">
+                <label for="totalPembayaran" class="form-label">Total Pembayaran</label>
+                <input type="number" class="form-control" id="totalPembayaran" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
+                <select class="form-select" id="metodePembayaran" required>
+                    <option value="Cash">Cash</option>
+                    <option value="Transfer">Transfer</option>
+                    <option value="QR">QR</option>
+                    <option value="Ewallet">Ewallet</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="jumlahDibayar" class="form-label">Jumlah Dibayar</label>
+                <input type="number" class="form-control" id="jumlahDibayar" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Proses Pembayaran</button>
+        </form>
+
+        <h4 class="mt-5">Status Pembayaran</h4>
+        <div id="statusPembayaran" class="alert alert-info" role="alert">
+            Pilih transaksi untuk melihat status pembayaran.
+        </div>
+
+        <button class="btn btn-success mt-3" id="strukButton" style="display:none;" onclick="printStruk()">Cetak Struk</button>
+
+    </div>
+
+    <!-- Modal Konfirmasi Pembayaran (untuk Transfer, QR, Ewallet) -->
+    <div class="modal fade" id="konfirmasiModal" tabindex="-1" aria-labelledby="konfirmasiModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="konfirmasiModalLabel">Konfirmasi Pembayaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin melanjutkan pembayaran? Status transaksi akan diubah menjadi "Pending" atau "Proses".</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="konfirmasiPembayaran">Konfirmasi Pembayaran</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+        let transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+        
+        // Menangani pembayaran
+        document.getElementById('pembayaranForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const transaksiId = document.getElementById('transaksiId').value;
+            const metodePembayaran = document.getElementById('metodePembayaran').value;
+            const jumlahDibayar = parseFloat(document.getElementById('jumlahDibayar').value);
+            const totalPembayaran = parseFloat(document.getElementById('totalPembayaran').value);
 
-        // Render semua transaksi
-        function renderTransaksi() {
-            const transaksiTable = document.querySelector('#transaksiTable tbody');
-            transaksiTable.innerHTML = '';
+            // Cari transaksi berdasarkan ID
+            const transaksi = transaksiList.find(t => t.id === transaksiId);
+            
+            if (!transaksi) {
+                alert('Transaksi tidak ditemukan!');
+                return;
+            }
 
-            transaksiList.forEach((transaksi, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${transaksi.pelanggan}</td>
-                    <td>${transaksi.metodePembayaran}</td>
-                    <td>Rp ${transaksi.total}</td>
-                    <td>${transaksi.status}</td>
-                    <td>
-                        ${transaksi.metodePembayaran === "Cash" && transaksi.status === "Belum Lunas" ? 
-                            `<button class="btn btn-primary btn-sm" onclick="konfirmasiLunas(${index})">Konfirmasi Lunas</button>` : 
-                            ''
-                        }
-                    </td>
-                `;
-                transaksiTable.appendChild(row);
-            });
-        }
+            // Verifikasi pembayaran untuk Cash
+            if (metodePembayaran === 'Cash') {
+                if (jumlahDibayar >= totalPembayaran) {
+                    transaksi.status = 'Lunas';
+                    alert('Pembayaran Lunas');
+                } else {
+                    transaksi.status = 'Belum Lunas';
+                    alert('Pembayaran Belum Lunas');
+                }
+            } else {
+                // Untuk metode lain (Transfer, QR, Ewallet) tampilkan konfirmasi pembayaran
+                const konfirmasiModal = new bootstrap.Modal(document.getElementById('konfirmasiModal'));
+                konfirmasiModal.show();
+                return;
+            }
 
-        // Konfirmasi Lunas untuk Cash
-        function konfirmasiLunas(index) {
-            transaksiList[index].status = 'Lunas';
+            // Simpan perubahan status transaksi
             localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-            renderTransaksi();
+
+            // Tampilkan status pembayaran
+            tampilkanStatus(transaksiId);
+        });
+
+        // Menampilkan status pembayaran
+        function tampilkanStatus(transaksiId) {
+            const transaksi = transaksiList.find(t => t.id === transaksiId);
+            if (transaksi) {
+                const statusPembayaran = document.getElementById('statusPembayaran');
+                statusPembayaran.innerHTML = `
+                    <strong>Status Pembayaran:</strong> ${transaksi.status}
+                    <br><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}
+                    <br><strong>Total:</strong> Rp ${transaksi.total}
+                    <br><strong>Jumlah Dibayar:</strong> Rp ${transaksi.bayar}
+                `;
+                document.getElementById('strukButton').style.display = 'inline-block';
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', renderTransaksi);
+        // Konfirmasi pembayaran
+        document.getElementById('konfirmasiPembayaran').addEventListener('click', () => {
+            const transaksiId = document.getElementById('transaksiId').value;
+            const transaksi = transaksiList.find(t => t.id === transaksiId);
+            if (transaksi) {
+                transaksi.status = 'Proses';
+                localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+                alert('Pembayaran dalam proses.');
+                tampilkanStatus(transaksiId);
+            }
+        });
+
+        // Fungsi untuk mencetak struk
+        function printStruk() {
+            const transaksiId = document.getElementById('transaksiId').value;
+            const transaksi = transaksiList.find(t => t.id === transaksiId);
+            if (transaksi) {
+                const strukContent = `
+                    <h3>Struk Pembayaran</h3>
+                    <p><strong>Transaksi ID:</strong> ${transaksi.id}</p>
+                    <p><strong>Pelanggan:</strong> ${transaksi.pelanggan}</p>
+                    <p><strong>Total Pembayaran:</strong> Rp ${transaksi.total}</p>
+                    <p><strong>Jumlah Dibayar:</strong> Rp ${transaksi.bayar}</p>
+                    <p><strong>Status:</strong> ${transaksi.status}</p>
+                    <p><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</p>
+                `;
+                const win = window.open('', '_blank');
+                win.document.write(`<html><head><title>Struk Pembayaran</title></head><body>${strukContent}</body></html>`);
+                win.document.close();
+                win.print();
+            }
+        }
+
+        // Render data awal
+        document.addEventListener('DOMContentLoaded', () => {
+            // Perbarui total pembayaran saat transaksi dipilih
+            document.getElementById('transaksiId').addEventListener('input', function() {
+                const transaksiId = this.value;
+                const transaksi = transaksiList.find(t => t.id === transaksiId);
+                if (transaksi) {
+                    document.getElementById('totalPembayaran').value = transaksi.total;
+                }
+            });
+        });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
