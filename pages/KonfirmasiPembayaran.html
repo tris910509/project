@@ -1,94 +1,173 @@
-<div class="container mt-5">
-    <h2 class="text-center">Daftar Transaksi</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID Transaksi</th>
-                <th>Pelanggan</th>
-                <th>Total Pembayaran</th>
-                <th>Status</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody id="daftarTransaksi">
-            <!-- Daftar transaksi akan ditampilkan di sini -->
-        </tbody>
-    </table>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Pembayaran</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <script>
+        // Periksa peran pengguna
+        const role = localStorage.getItem('userRole');
+        if (!role) {
+            alert('Anda belum login!');
+            window.location.href = 'login.html';
+        }
 
-<!-- Modal Konfirmasi Pembayaran -->
-<div class="modal" tabindex="-1" id="konfirmasiModal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Konfirmasi Pembayaran</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>Masukkan ID Transaksi dan jumlah pembayaran yang sesuai:</p>
-        <input type="text" id="idTransaksiKonfirmasi" class="form-control mb-3" placeholder="ID Transaksi" disabled>
-        <input type="number" id="jumlahBayar" class="form-control" placeholder="Jumlah Pembayaran">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-        <button type="button" class="btn btn-primary" id="btnKonfirmasiPembayaran">Konfirmasi Pembayaran</button>
-      </div>
+        const userName = localStorage.getItem('userName'); // Nama pengguna
+    </script>
+
+    <div class="container mt-5">
+        <h2 class="text-center">Halaman Pembayaran</h2>
+        <h4>Daftar Pembayaran</h4>
+        <table class="table table-striped" id="pembayaranTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ID Transaksi</th>
+                    <th>Nama Pelanggan</th>
+                    <th>Metode Pembayaran</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Isi tabel secara dinamis -->
+            </tbody>
+        </table>
     </div>
-  </div>
-</div>
 
-<script>
-    // Data transaksi (simulasi dari localStorage)
-    let transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+    <!-- Modal Detail Pembayaran -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">Detail Pembayaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul id="detailList">
+                        <!-- Detail transaksi -->
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    // Menampilkan daftar transaksi
-    function tampilkanDaftarTransaksi() {
-        const table = document.getElementById('daftarTransaksi');
-        table.innerHTML = ''; // Reset table
-        transaksiList.forEach(transaksi => {
-            if (transaksi.status === 'Belum Lunas') { // Hanya yang belum lunas
+    <!-- Modal Konfirmasi Pembayaran -->
+    <div class="modal fade" id="konfirmasiModal" tabindex="-1" aria-labelledby="konfirmasiModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="konfirmasiModalLabel">Konfirmasi Pembayaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin mengkonfirmasi pembayaran ini?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" id="konfirmasiButton">Konfirmasi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+
+        // Filter transaksi berdasarkan peran
+        function getFilteredTransaksi() {
+            if (role === 'Admin') {
+                return transaksiList; // Admin melihat semua transaksi
+            } else if (role === 'Kasir') {
+                return transaksiList.filter(
+                    transaksi => transaksi.metodePembayaran === 'Cash' && transaksi.status !== 'Lunas'
+                ); // Kasir hanya melihat transaksi cash yang belum lunas
+            } else if (role === 'Pelanggan') {
+                return transaksiList.filter(transaksi => transaksi.pelanggan === userName);
+            }
+            return [];
+        }
+
+        // Render daftar pembayaran
+        function renderPembayaran() {
+            const filteredTransaksi = getFilteredTransaksi();
+            const pembayaranTable = document.querySelector('#pembayaranTable tbody');
+            pembayaranTable.innerHTML = '';
+
+            filteredTransaksi.forEach((transaksi, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td>${index + 1}</td>
                     <td>${transaksi.id}</td>
                     <td>${transaksi.pelanggan}</td>
-                    <td>${transaksi.total}</td>
+                    <td>${transaksi.metodePembayaran}</td>
                     <td>${transaksi.status}</td>
-                    <td><button class="btn btn-success" onclick="konfirmasiPembayaran('${transaksi.id}')">Konfirmasi</button></td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="showDetailModal(${index})">Detail</button>
+                        ${
+                            role !== 'Pelanggan' && transaksi.status !== 'Lunas' &&
+                            (role === 'Admin' || (role === 'Kasir' && transaksi.metodePembayaran === 'Cash'))
+                                ? `<button class="btn btn-primary btn-sm" onclick="showKonfirmasiModal(${index})">Konfirmasi</button>`
+                                : ''
+                        }
+                    </td>
                 `;
-                table.appendChild(row);
+                pembayaranTable.appendChild(row);
+            });
+        }
+
+        // Tampilkan modal detail pembayaran
+        function showDetailModal(index) {
+            const transaksi = getFilteredTransaksi()[index];
+            const detailList = document.getElementById('detailList');
+            detailList.innerHTML = `
+                <li><strong>ID Transaksi:</strong> ${transaksi.id}</li>
+                <li><strong>Nama Pelanggan:</strong> ${transaksi.pelanggan}</li>
+                <li><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</li>
+                <li><strong>Status:</strong> ${transaksi.status}</li>
+                <li><strong>Total:</strong> Rp ${transaksi.total}</li>
+                <li><strong>Jumlah Bayar:</strong> Rp ${transaksi.jumlahBayar || '-'}</li>
+            `;
+
+            const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
+            detailModal.show();
+        }
+
+        // Tampilkan modal konfirmasi pembayaran
+        function showKonfirmasiModal(index) {
+            const konfirmasiModal = new bootstrap.Modal(document.getElementById('konfirmasiModal'));
+            konfirmasiModal.show();
+
+            document.getElementById('konfirmasiButton').onclick = () => {
+                konfirmasiPembayaran(index);
+                konfirmasiModal.hide();
+            };
+        }
+
+        // Konfirmasi pembayaran
+        function konfirmasiPembayaran(index) {
+            const filteredTransaksi = getFilteredTransaksi();
+            const transaksi = filteredTransaksi[index];
+
+            const transaksiIndex = transaksiList.findIndex(t => t.id === transaksi.id);
+            if (transaksiIndex !== -1) {
+                transaksiList[transaksiIndex].status = 'Lunas';
+                localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+                alert('Pembayaran berhasil dikonfirmasi');
+                renderPembayaran();
             }
-        });
-    }
-
-    // Memanggil modal konfirmasi pembayaran
-    function konfirmasiPembayaran(idTransaksi) {
-        const transaksi = transaksiList.find(t => t.id === idTransaksi);
-        if (transaksi) {
-            document.getElementById('idTransaksiKonfirmasi').value = transaksi.id;
-            document.getElementById('jumlahBayar').value = ''; // Reset jumlah bayar
-            $('#konfirmasiModal').modal('show');
         }
-    }
 
-    // Proses konfirmasi pembayaran
-    document.getElementById('btnKonfirmasiPembayaran').addEventListener('click', function() {
-        const idTransaksi = document.getElementById('idTransaksiKonfirmasi').value;
-        const jumlahBayar = parseFloat(document.getElementById('jumlahBayar').value);
-        
-        const transaksi = transaksiList.find(t => t.id === idTransaksi);
+        renderPembayaran();
+    </script>
 
-        if (transaksi && jumlahBayar === transaksi.total) {
-            transaksi.status = 'Lunas'; // Update status jadi lunas
-            localStorage.setItem('transaksi', JSON.stringify(transaksiList)); // Simpan ke localStorage
-
-            alert('Pembayaran berhasil dikonfirmasi! Status transaksi berubah menjadi Lunas.');
-            $('#konfirmasiModal').modal('hide'); // Tutup modal
-            tampilkanDaftarTransaksi(); // Refresh daftar transaksi
-        } else {
-            alert('Jumlah pembayaran tidak sesuai dengan total transaksi!');
-        }
-    });
-
-    // Panggil fungsi untuk menampilkan transaksi pada halaman
-    tampilkanDaftarTransaksi();
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
