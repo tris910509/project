@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transaksi</title>
+    <title>Transaksi Pembayaran</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -75,22 +75,32 @@
     </div>
 
     <script>
+        // Mengambil data produk dari localStorage
         function getProduk() {
             return JSON.parse(localStorage.getItem('produk')) || [];
         }
 
+        // Mengambil data metode pembayaran dari localStorage
         function getMetodePembayaran() {
             return JSON.parse(localStorage.getItem('metodePembayaran')) || [];
         }
 
+        // Mengambil data keranjang belanja dari localStorage
         function getKeranjang() {
             return JSON.parse(localStorage.getItem('keranjang')) || [];
         }
 
+        // Menyimpan data keranjang ke localStorage
         function saveKeranjang(data) {
             localStorage.setItem('keranjang', JSON.stringify(data));
         }
 
+        // Menyimpan data transaksi ke localStorage
+        function saveTransaksi(data) {
+            localStorage.setItem('transaksi', JSON.stringify(data));
+        }
+
+        // Render produk dan metode pembayaran ke dalam dropdown
         function renderDropdowns() {
             const produkList = getProduk();
             const metodeList = getMetodePembayaran();
@@ -113,6 +123,7 @@
             });
         }
 
+        // Render keranjang belanja
         function renderKeranjang() {
             const keranjangList = getKeranjang();
             const keranjangTableBody = document.getElementById('keranjangTableBody');
@@ -138,6 +149,7 @@
             document.getElementById('totalKeranjangText').textContent = `Total Keranjang: Rp ${totalKeranjang}`;
         }
 
+        // Menambah produk ke keranjang
         document.getElementById('keranjangForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -166,6 +178,7 @@
             renderKeranjang();
         });
 
+        // Menghapus produk dari keranjang
         function hapusDariKeranjang(index) {
             const keranjangList = getKeranjang();
             keranjangList.splice(index, 1);
@@ -173,6 +186,7 @@
             renderKeranjang();
         }
 
+        // Proses pembayaran
         document.getElementById('transaksiForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -188,10 +202,16 @@
             // Perhitungan Diskon
             const diskonAmount = (totalKeranjang * diskon) / 100;
             const totalYangHarusDibayar = totalKeranjang - diskonAmount;
+
+            if (jumlahBayar < totalYangHarusDibayar) {
+                alert("Jumlah bayar tidak cukup!");
+                return;
+            }
+
             const kembalian = jumlahBayar - totalYangHarusDibayar;
 
-            // Simpan transaksi setelah pembayaran
-            const transaksiList = getTransaksi();
+            // Menyimpan transaksi setelah pembayaran
+            const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
             transaksiList.push({
                 keranjang: keranjangList,
                 totalHarga: totalKeranjang,
