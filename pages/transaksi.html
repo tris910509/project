@@ -11,12 +11,6 @@
         <h2 class="text-center">Transaksi</h2>
 
         <form id="transaksiForm">
-            <!-- No. Invoice -->
-            <div class="mb-3">
-                <label for="invoice" class="form-label">No. Invoice</label>
-                <input type="text" class="form-control" id="invoice" readonly value="INV-{{generateInvoice()}}">
-            </div>
-
             <!-- Pelanggan -->
             <div class="mb-3">
                 <label for="pelanggan" class="form-label">Pilih Pelanggan</label>
@@ -80,12 +74,6 @@
                 </select>
             </div>
 
-            <!-- Upload Bukti Pembayaran untuk Transfer, QR, Ewallet -->
-            <div class="mb-3" id="uploadBukti" style="display: none;">
-                <label for="buktiPembayaran" class="form-label">Upload Bukti Pembayaran</label>
-                <input type="file" class="form-control" id="buktiPembayaran" accept="image/*">
-            </div>
-
             <!-- Jumlah yang Dibayar -->
             <div class="mb-3">
                 <label for="bayar" class="form-label">Jumlah Dibayar</label>
@@ -115,13 +103,6 @@
         const pelangganList = JSON.parse(localStorage.getItem('pelanggan')) || [];
         const produkList = JSON.parse(localStorage.getItem('produk')) || [];
         const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
-
-        // Generate No. Invoice
-        function generateInvoice() {
-            const lastInvoice = transaksiList.length > 0 ? transaksiList[transaksiList.length - 1].invoice : '0000';
-            const nextInvoice = parseInt(lastInvoice.replace('INV-', '')) + 1;
-            return `INV-${nextInvoice.toString().padStart(4, '0')}`;
-        }
 
         // Render Pelanggan
         function renderPelanggan() {
@@ -192,17 +173,6 @@
             document.getElementById('total').value = total.toFixed(2);
         }
 
-        // Handle select metode pembayaran
-        document.getElementById('metodePembayaran').addEventListener('change', function() {
-            const metodePembayaran = this.value;
-            const uploadBukti = document.getElementById('uploadBukti');
-            if (metodePembayaran === 'Transfer' || metodePembayaran === 'QR' || metodePembayaran === 'Ewallet') {
-                uploadBukti.style.display = 'block';
-            } else {
-                uploadBukti.style.display = 'none';
-            }
-        });
-
         // Handle submit form transaksi
         document.getElementById('transaksiForm').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -223,7 +193,6 @@
             document.getElementById('kembalian').value = kembalian >= 0 ? kembalian.toFixed(2) : 0;
 
             const transaksi = {
-                invoice: document.getElementById('invoice').value,
                 pelanggan,
                 total,
                 metodePembayaran,
@@ -245,7 +214,6 @@
         function renderStruk(transaksi) {
             const strukContent = document.getElementById('strukContent');
             strukContent.innerHTML = `
-                <p><strong>No. Invoice:</strong> ${transaksi.invoice}</p>
                 <p><strong>Pelanggan:</strong> ${transaksi.pelanggan}</p>
                 <p><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</p>
                 <p><strong>Total:</strong> Rp ${transaksi.total}</p>
