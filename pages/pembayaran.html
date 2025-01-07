@@ -44,14 +44,12 @@
                     <td>${transaksi.status}</td>
                     <td>${transaksi.metodePembayaran}</td>
                     <td>
-                        ${transaksi.metodePembayaran === 'Cash' && transaksi.status === 'Lunas' ?
-                            `<button class="btn btn-info btn-sm" onclick="lihatStruk(${index})">Lihat Struk</button>` :
-                            transaksi.status === 'Belum Lunas' ?
-                                `<button class="btn btn-warning btn-sm" onclick="pindahKeKonfirmasi(${index})">Konfirmasi Pembayaran</button>` :
-                                `<button class="btn btn-secondary btn-sm" disabled>Proses</button>`
+                        ${transaksi.metodePembayaran !== 'Cash' && transaksi.status === 'Pending' ?
+                            `<button class="btn btn-warning btn-sm" onclick="pindahKeKonfirmasi(${index})">Konfirmasi Pembayaran</button>` :
+                            ''
                         }
-                        ${transaksi.metodePembayaran !== 'Cash' && transaksi.status === 'Belum Lunas' ?
-                            `<button class="btn btn-info btn-sm" onclick="lihatBukti(${index})">Lihat Bukti</button>` : 
+                        ${transaksi.status === 'Lunas' ? 
+                            `<button class="btn btn-info btn-sm" onclick="lihatStruk(${index})">Lihat Struk</button>` : 
                             ''
                         }
                     </td>
@@ -63,12 +61,11 @@
         // Pindahkan transaksi ke halaman konfirmasi pembayaran
         function pindahKeKonfirmasi(index) {
             const transaksi = transaksiList[index];
-            // Simpan transaksi yang perlu dikonfirmasi dalam sessionStorage atau lokalStorage
             sessionStorage.setItem('transaksiUntukKonfirmasi', JSON.stringify(transaksi));
-            window.location.href = 'KonfirmasiPembayaran.html'; // Arahkan ke halaman konfirmasi pembayaran
+            window.location.href = 'KonfirmasiPembayaran.html';
         }
 
-        // Lihat struk pembayaran (untuk transaksi cash yang sudah lunas)
+        // Lihat struk pembayaran (untuk transaksi yang sudah lunas)
         function lihatStruk(index) {
             const transaksi = transaksiList[index];
             alert(`
@@ -82,13 +79,6 @@
             `);
         }
 
-        // Lihat bukti pembayaran (untuk metode selain cash)
-        function lihatBukti(index) {
-            const transaksi = transaksiList[index];
-            alert(`Bukti pembayaran untuk No Invoice ${transaksi.noInvoice}: \n${transaksi.buktiPembayaran}`);
-        }
-
-        // Render transaksi ketika halaman dimuat
         document.addEventListener('DOMContentLoaded', renderTransaksi);
     </script>
 </body>
