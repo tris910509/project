@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen User</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <script>
+        // Periksa peran pengguna
+        const role = localStorage.getItem('userRole');
+        const allowedRoles = ['Admin'];
+        if (!allowedRoles.includes(role)) {
+            alert('Anda tidak memiliki akses ke halaman ini!');
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <div class="container mt-5">
+        <h2 class="text-center">Manajemen User</h2>
+
+        <!-- Form Tambah User -->
+        <h4>Tambah User</h4>
+        <form id="tambahUserForm" class="mb-4">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Masukkan Username" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Masukkan Password" required>
+            </div>
+            <div class="mb-3">
+                <label for="role" class="form-label">Role</label>
+                <select class="form-select" id="role" required>
+                    <option value="Admin">Admin</option>
+                    <option value="User">User</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Tambah User</button>
+        </form>
+
+        <h4>Daftar User</h4>
+        <table class="table table-striped" id="userTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Mengambil data user dari localStorage
+        function getUser() {
+            return JSON.parse(localStorage.getItem('user')) || [];
+        }
+
+        // Menyimpan data user ke localStorage
+        function saveUser(data) {
+            localStorage.setItem('user', JSON.stringify(data));
+        }
+
+        // Render daftar user
+        function renderUser() {
+            const userList = getUser();
+            const userTableBody = document.getElementById('userTableBody');
+            userTableBody.innerHTML = '';
+
+            userList.forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${user.username}</td>
+                    <td>${user.role}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="hapusUser(${index})">Hapus</button>
+                    </td>
+                `;
+                userTableBody.appendChild(row);
+            });
+        }
+
+        // Menambahkan user baru
+        document.getElementById('tambahUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+
+            const userList = getUser();
+            userList.push({ username, password, role });
+            saveUser(userList);
+
+            this.reset();
+            renderUser();
+        });
+
+        // Menghapus user
+        function hapusUser(index) {
+            const userList = getUser();
+            userList.splice(index, 1);
+            saveUser(userList);
+            renderUser();
+        }
+
+        document.addEventListener('DOMContentLoaded', renderUser);
+    </script>
+</body>
+</html>
