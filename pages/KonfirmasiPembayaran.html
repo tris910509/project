@@ -44,11 +44,15 @@
                 const bayar = prompt('Masukkan jumlah pembayaran:', 0);
                 if (parseFloat(bayar) >= transaksi.total) {
                     transaksi.status = 'Lunas';
+                    transaksi.bayar = bayar;
+                    transaksi.kembalian = bayar - transaksi.total;
                     alert('Pembayaran Lunas');
                 } else {
-                    alert('Jumlah bayar kurang');
+                    alert('Jumlah bayar kurang dari total');
+                    return;
                 }
             } else {
+                // Untuk pembayaran selain Cash, anggap sudah terverifikasi
                 transaksi.status = 'Lunas';
                 alert('Pembayaran Terverifikasi');
             }
