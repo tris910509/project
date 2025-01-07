@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metode Pembayaran</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <script>
+        // Periksa peran pengguna
+        const role = localStorage.getItem('userRole');
+        const allowedRoles = ['Admin'];
+        if (!allowedRoles.includes(role)) {
+            alert('Anda tidak memiliki akses ke halaman ini!');
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <div class="container mt-5">
+        <h2 class="text-center">Metode Pembayaran</h2>
+        <form id="metodeForm" class="mb-4">
+            <div class="mb-3">
+                <label for="metode" class="form-label">Metode Pembayaran</label>
+                <input type="text" class="form-control" id="metode" placeholder="Masukkan metode pembayaran" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+        </form>
+
+        <table class="table table-striped" id="metodeTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Metode Pembayaran</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="metodeTableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        function getMetodePembayaran() {
+            return JSON.parse(localStorage.getItem('metodePembayaran')) || [];
+        }
+
+        function saveMetodePembayaran(data) {
+            localStorage.setItem('metodePembayaran', JSON.stringify(data));
+        }
+
+        function renderMetodePembayaran() {
+            const metodeList = getMetodePembayaran();
+            const metodeTableBody = document.getElementById('metodeTableBody');
+            metodeTableBody.innerHTML = '';
+
+            metodeList.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.nama}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editMetode(${index})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteMetode(${index})">Delete</button>
+                    </td>
+                `;
+                metodeTableBody.appendChild(row);
+            });
+        }
+
+        document.getElementById('metodeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const nama = document.getElementById('metode').value;
+            const metodeList = getMetodePembayaran();
+            metodeList.push({ nama });
+            saveMetodePembayaran(metodeList);
+
+            this.reset();
+            renderMetodePembayaran();
+        });
+
+        function deleteMetode(index) {
+            const metodeList = getMetodePembayaran();
+            metodeList.splice(index, 1);
+            saveMetodePembayaran(metodeList);
+            renderMetodePembayaran();
+        }
+
+        function editMetode(index) {
+            const metodeList = getMetodePembayaran();
+            const metode = metodeList[index];
+
+            document.getElementById('metode').value = metode.nama;
+
+            metodeList.splice(index, 1);
+            saveMetodePembayaran(metodeList);
+            renderMetodePembayaran();
+        }
+
+        document.addEventListener('DOMContentLoaded', renderMetodePembayaran);
+    </script>
+</body>
+</html>
