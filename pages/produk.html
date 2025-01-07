@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">Produk</h2>
+        
+        <!-- Form untuk input data produk -->
+        <form id="produkForm" class="mb-4">
+            <div class="mb-3">
+                <label for="nama-produk" class="form-label">Nama Produk</label>
+                <input type="text" class="form-control" id="nama-produk" placeholder="Masukkan nama produk" required>
+            </div>
+            <div class="mb-3">
+                <label for="kategori" class="form-label">Kategori</label>
+                <input type="text" class="form-control" id="kategori" placeholder="Masukkan kategori produk" required>
+            </div>
+            <div class="mb-3">
+                <label for="harga" class="form-label">Harga</label>
+                <input type="number" class="form-control" id="harga" placeholder="Masukkan harga produk" required>
+            </div>
+            <div class="mb-3">
+                <label for="stok" class="form-label">Stok</label>
+                <input type="number" class="form-control" id="stok" placeholder="Masukkan stok produk" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+        </form>
+        
+        <!-- Tabel untuk menampilkan data produk -->
+        <table class="table table-striped" id="produkTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nama Produk</th>
+                    <th>Kategori</th>
+                    <th>Harga</th>
+                    <th>Stok</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="produkTableBody">
+                <!-- Data produk akan di-render di sini -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fungsi untuk mendapatkan data produk dari localStorage
+        function getProduk() {
+            return JSON.parse(localStorage.getItem('produk')) || [];
+        }
+
+        // Fungsi untuk menyimpan data produk ke localStorage
+        function saveProduk(produk) {
+            localStorage.setItem('produk', JSON.stringify(produk));
+        }
+
+        // Fungsi untuk menampilkan data produk di tabel
+        function renderProduk() {
+            const produkTableBody = document.getElementById('produkTableBody');
+            produkTableBody.innerHTML = ''; // Kosongkan tabel sebelum render
+
+            const produkList = getProduk();
+            produkList.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.nama}</td>
+                    <td>${item.kategori}</td>
+                    <td>${item.harga}</td>
+                    <td>${item.stok}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editProduk(${index})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteProduk(${index})">Delete</button>
+                    </td>
+                `;
+                produkTableBody.appendChild(row);
+            });
+        }
+
+        // Fungsi untuk menambah atau mengupdate data produk
+        document.getElementById('produkForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Mencegah form submit
+
+            const nama = document.getElementById('nama-produk').value;
+            const kategori = document.getElementById('kategori').value;
+            const harga = document.getElementById('harga').value;
+            const stok = document.getElementById('stok').value;
+
+            const produkList = getProduk();
+            produkList.push({ nama, kategori, harga, stok });
+            saveProduk(produkList);
+
+            // Reset form dan render ulang tabel
+            this.reset();
+            renderProduk();
+        });
+
+        // Fungsi untuk menghapus data produk
+        function deleteProduk(index) {
+            const produkList = getProduk();
+            produkList.splice(index, 1); // Hapus data pada index tertentu
+            saveProduk(produkList);
+            renderProduk();
+        }
+
+        // Fungsi untuk mengedit data produk (opsional)
+        function editProduk(index) {
+            const produkList = getProduk();
+            const produk = produkList[index];
+
+            document.getElementById('nama-produk').value = produk.nama;
+            document.getElementById('kategori').value = produk.kategori;
+            document.getElementById('harga').value = produk.harga;
+            document.getElementById('stok').value = produk.stok;
+
+            // Hapus data lama dan render ulang tabel setelah edit
+            produkList.splice(index, 1);
+            saveProduk(produkList);
+            renderProduk();
+        }
+
+        // Render data produk saat halaman pertama kali dimuat
+        document.addEventListener('DOMContentLoaded', renderProduk);
+    </script>
+</body>
+</html>
