@@ -107,7 +107,10 @@
         </table>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
     <script>
+        emailjs.init("YOUR_USER_ID");  // Gantilah dengan User ID Anda di EmailJS
+
         let keranjang = [];
         const pelangganList = JSON.parse(localStorage.getItem('pelanggan')) || [];
         const produkList = JSON.parse(localStorage.getItem('produk')) || [];
@@ -226,6 +229,14 @@
             localStorage.setItem('transaksi', JSON.stringify(transaksiList));
             renderTransaksi();
 
+            // Kirim email notifikasi
+            sendEmailNotification(transaksiId, pelanggan, total, metodePembayaran, status, buktiPembayaran);
+
+            // Kirim WhatsApp jika bukan Cash
+            if (metodePembayaran !== 'Cash') {
+                sendToWhatsApp(transaksiId, pelanggan, total, metodePembayaran, buktiPembayaran);
+            }
+
             // Reset form
             document.getElementById('transaksiForm').reset();
             keranjang = [];
@@ -246,10 +257,6 @@
                     <td>${transaksi.status}</td>
                     <td>
                         <button class="btn btn-info btn-sm" onclick="viewDetail(${index})">Detail</button>
-                        ${transaksi.metodePembayaran !== 'Cash' ? 
-                            `<button class="btn btn-success btn-sm" onclick="sendToWhatsApp(${index})">Kirim ke WhatsApp</button>` : 
-                            ''
-                        }
                     </td>
                 `;
                 transaksiTable.appendChild(row);
@@ -261,20 +268,28 @@
             alert(`ID Transaksi: ${transaksi.id}\nPelanggan: ${transaksi.pelanggan}\nTotal: Rp ${transaksi.total}\nMetode Pembayaran: ${transaksi.metodePembayaran}\nStatus: ${transaksi.status}`);
         }
 
-        function sendToWhatsApp(index) {
-            const transaksi = transaksiList[index];
-            const pelanggan = transaksi.pelanggan;
-            const total = transaksi.total;
-            const metodePembayaran = transaksi.metodePembayaran;
-            const buktiPembayaran = transaksi.buktiPembayaran;
+        function sendEmailNotification(transaksiId, pelanggan, total, metodePembayaran, status, buktiPembayaran) {
+            const templateParams = {
+                transaksi_id: transaksiId,
+                pelanggan: pelanggan,
+                total: total,
+                metode_pembayaran: metodePembayaran,
+                status: status,
+                bukti_pembayaran: buktiPembayaran ? 'Ada' : 'Tidak Ada'
+            };
 
-            // Format pesan WhatsApp
-            const message = `Transaksi Pembayaran\nID: ${transaksi.id}\nPelanggan: ${pelanggan}\nTotal: Rp ${total}\nMetode Pembayaran: ${metodePembayaran}\nBukti Pembayaran: ${buktiPembayaran ? 'Ada' : 'Tidak Ada'}`;
+            emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", templateParams)
+                .then(function(response) {
+                    console.log('Email sent successfully:', response);
+                }, function(error) {
+                    console.log('Failed to send email:', error);
+                });
+        }
 
-            // Nomor WhatsApp Admin
+        function sendToWhatsApp(transaksiId, pelanggan, total, metodePembayaran, buktiPembayaran) {
+            const message = `Transaksi Pembayaran\nID: ${transaksiId}\nPelanggan: ${pelanggan}\nTotal: Rp ${total}\nMetode Pembayaran: ${metodePembayaran}\nBukti Pembayaran: ${buktiPembayaran ? 'Ada' : 'Tidak Ada'}`;
             const adminPhone = "6281234567890";  // Ganti dengan nomor admin yang sebenarnya
             const whatsappLink = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
-
             window.open(whatsappLink, '_blank');
         }
 
