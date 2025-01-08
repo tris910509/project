@@ -25,6 +25,12 @@
                 </select>
             </div>
 
+            <!-- Nomor Handphone Pelanggan -->
+            <div class="mb-3">
+                <label for="noHandphone" class="form-label">Nomor Handphone Pelanggan</label>
+                <input type="text" class="form-control" id="noHandphone" placeholder="Masukkan Nomor Handphone Pelanggan" required>
+            </div>
+
             <!-- Pilih Produk -->
             <div class="mb-3">
                 <label for="produk" class="form-label">Pilih Produk</label>
@@ -194,6 +200,7 @@
             e.preventDefault();
 
             const pelanggan = document.getElementById('pelanggan').value;
+            const noHandphone = document.getElementById('noHandphone').value;
             const total = document.getElementById('total').value;
             const metodePembayaran = document.getElementById('metodePembayaran').value;
             const bayar = parseInt(document.getElementById('bayar').value);
@@ -219,6 +226,7 @@
             transaksiList.push({
                 id: transaksiId,
                 pelanggan,
+                noHandphone,
                 total,
                 metodePembayaran,
                 bayar,
@@ -232,9 +240,9 @@
             // Kirim email notifikasi
             sendEmailNotification(transaksiId, pelanggan, total, metodePembayaran, status, buktiPembayaran);
 
-            // Kirim WhatsApp jika bukan Cash
+            // Kirim WhatsApp ke nomor pelanggan
             if (metodePembayaran !== 'Cash') {
-                sendToWhatsApp(transaksiId, pelanggan, total, metodePembayaran, buktiPembayaran);
+                sendToWhatsApp(transaksiId, pelanggan, total, metodePembayaran, buktiPembayaran, noHandphone);
             }
 
             // Reset form
@@ -286,10 +294,9 @@
                 });
         }
 
-        function sendToWhatsApp(transaksiId, pelanggan, total, metodePembayaran, buktiPembayaran) {
+        function sendToWhatsApp(transaksiId, pelanggan, total, metodePembayaran, buktiPembayaran, noHandphone) {
             const message = `Transaksi Pembayaran\nID: ${transaksiId}\nPelanggan: ${pelanggan}\nTotal: Rp ${total}\nMetode Pembayaran: ${metodePembayaran}\nBukti Pembayaran: ${buktiPembayaran ? 'Ada' : 'Tidak Ada'}`;
-            const adminPhone = "6281234567890";  // Ganti dengan nomor admin yang sebenarnya
-            const whatsappLink = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
+            const whatsappLink = `https://wa.me/${noHandphone}?text=${encodeURIComponent(message)}`;
             window.open(whatsappLink, '_blank');
         }
 
