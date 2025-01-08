@@ -24,14 +24,7 @@
                 <canvas id="chartPendapatan"></canvas>
             </div>
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5>Statistik Pendapatan</h5>
-                        <p>Total Pendapatan Hari Ini: <strong id="pendapatanHarian">Rp 0</strong></p>
-                        <p>Total Pendapatan Bulan Ini: <strong id="pendapatanBulanan">Rp 0</strong></p>
-                        <p>Total Pendapatan Tahun Ini: <strong id="pendapatanTahunan">Rp 0</strong></p>
-                    </div>
-                </div>
+                <canvas id="chartStatusTransaksi"></canvas>
             </div>
         </div>
 
@@ -122,19 +115,30 @@
                 .filter(t => t.tanggal.startsWith(thisYear))
                 .reduce((sum, t) => sum + t.total, 0);
 
-            document.getElementById('pendapatanHarian').innerText = formatRupiah(pendapatanHarian);
-            document.getElementById('pendapatanBulanan').innerText = formatRupiah(pendapatanBulanan);
-            document.getElementById('pendapatanTahunan').innerText = formatRupiah(pendapatanTahunan);
-
             return { pendapatanHarian, pendapatanBulanan, pendapatanTahunan };
+        }
+
+        // Statistik Status Transaksi
+        function calculateStatus() {
+            const statusCounts = {
+                Lunas: 0,
+                'Belum Lunas': 0,
+                Pending: 0,
+            };
+
+            transaksiList.forEach(transaksi => {
+                statusCounts[transaksi.status] = (statusCounts[transaksi.status] || 0) + 1;
+            });
+
+            return statusCounts;
         }
 
         // Render Chart
         function renderChart() {
-            const ctx = document.getElementById('chartPendapatan').getContext('2d');
+            const pendapatanCtx = document.getElementById('chartPendapatan').getContext('2d');
             const { pendapatanHarian, pendapatanBulanan, pendapatanTahunan } = calculatePendapatan();
 
-            new Chart(ctx, {
+            new Chart(pendapatanCtx, {
                 type: 'bar',
                 data: {
                     labels: ['Harian', 'Bulanan', 'Tahunan'],
@@ -150,6 +154,20 @@
                     scales: {
                         y: { beginAtZero: true },
                     },
+                },
+            });
+
+            const statusCtx = document.getElementById('chartStatusTransaksi').getContext('2d');
+            const statusCounts = calculateStatus();
+
+            new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Lunas', 'Belum Lunas', 'Pending'],
+                    datasets: [{
+                        data: [statusCounts.Lunas, statusCounts['Belum Lunas'], statusCounts.Pending],
+                        backgroundColor: ['#4caf50', '#f44336', '#ff9800'],
+                    }],
                 },
             });
         }
