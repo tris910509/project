@@ -86,8 +86,8 @@
                 <input type="number" class="form-control" id="bayar" placeholder="Masukkan Jumlah Dibayar" required>
             </div>
 
-            <!-- Bukti Pembayaran -->
-            <div class="mb-3">
+            <!-- Bukti Pembayaran (Hanya untuk Transfer, QR, Ewallet) -->
+            <div class="mb-3" id="buktiPembayaranDiv" style="display:none;">
                 <label for="buktiPembayaran" class="form-label">Upload Bukti Pembayaran</label>
                 <input type="file" class="form-control" id="buktiPembayaran">
             </div>
@@ -105,6 +105,7 @@
                     <th>Total</th>
                     <th>Metode</th>
                     <th>Status</th>
+                    <th>Bukti Pembayaran</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -126,6 +127,25 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                     <button type="button" class="btn btn-danger" id="konfirmasiPembayaran">Proses Pembayaran</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Struk -->
+    <div class="modal fade" id="strukModal" tabindex="-1" aria-labelledby="strukModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="strukModalLabel">Struk Transaksi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="strukContent">
+                    <!-- Isi struk di sini -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" onclick="printStruk()">Cetak</button>
                 </div>
             </div>
         </div>
@@ -202,6 +222,15 @@
             document.getElementById('total').value = total;
         }
 
+        // Menampilkan input bukti pembayaran saat metode pembayaran selain Cash
+        document.getElementById('metodePembayaran').addEventListener('change', (e) => {
+            if (e.target.value === 'Cash') {
+                document.getElementById('buktiPembayaranDiv').style.display = 'none';
+            } else {
+                document.getElementById('buktiPembayaranDiv').style.display = 'block';
+            }
+        });
+
         // Proses transaksi
         document.getElementById('transaksiForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -211,9 +240,17 @@
             const bayar = parseFloat(document.getElementById('bayar').value);
             const total = parseFloat(document.getElementById('total').value);
             const transaksiId = `TR-${Date.now()}`;
-            const buktiPembayaran = document.getElementById('buktiPembayaran').files[0];
 
             let status;
+            let buktiPembayaran = null;
+
+            if (metodePembayaran !== 'Cash') {
+                const fileInput = document.getElementById('buktiPembayaran');
+                if (fileInput.files.length > 0) {
+                    buktiPembayaran = fileInput.files[0];
+                }
+            }
+
             if (metodePembayaran === 'Cash') {
                 if (bayar < total) {
                     // Menampilkan modal konfirmasi pembayaran jika bayar kurang dari total
@@ -228,18 +265,13 @@
                     tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, transaksiId, buktiPembayaran);
                 }
             } else {
-                status = 'Pending Konfirmasi';
+                status = 'Proses';
                 tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, transaksiId, buktiPembayaran);
             }
         });
 
         // Fungsi tambah transaksi
         function tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, transaksiId, buktiPembayaran) {
-            // Upload bukti pembayaran ke Google Drive
-            if (buktiPembayaran) {
-                uploadBuktiPembayaran(buktiPembayaran, transaksiId);
-            }
-
             const transaksi = {
                 id: transaksiId,
                 pelanggan,
@@ -247,7 +279,8 @@
                 metodePembayaran,
                 bayar,
                 status,
-                keranjang
+                keranjang,
+                buktiPembayaran
             };
 
             transaksiList.push(transaksi);
@@ -259,32 +292,6 @@
             renderTransaksi();
             const konfirmasiModal = new bootstrap.Modal(document.getElementById('konfirmasiModal'));
             konfirmasiModal.hide();
-        }
-
-        // Fungsi upload bukti pembayaran ke Google Drive
-        function uploadBuktiPembayaran(buktiFile, transaksiId) {
-            const formData = new FormData();
-            formData.append('file', buktiFile);
-
-            // Mengambil tanggal hari ini
-            const today = new Date();
-            const folderName = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-            const folderId = createFolder(folderName);
-
-            // Setelah folder dibuat, upload file ke folder tersebut
-            formData.append('parent', folderId);
-            
-            // Implementasi upload file ke Google Drive di sini menggunakan API
-            // Misalnya, menggunakan fetch dengan API Google Drive untuk mengupload formData
-        }
-
-        // Fungsi untuk membuat folder berdasarkan tanggal
-        function createFolder(folderName) {
-            // Logika untuk membuat folder baru menggunakan Google Drive API
-            // Ini memerlukan implementasi OAuth 2.0 untuk autentikasi dan membuat folder
-            // Kode ini adalah placeholder dan harus disesuaikan dengan implementasi API
-            console.log(`Folder dibuat: ${folderName}`);
-            return 'folder_id'; // Gantilah dengan folder ID yang sesungguhnya setelah folder dibuat
         }
 
         // Render transaksi
@@ -301,30 +308,56 @@
                     <td>${transaksi.metodePembayaran}</td>
                     <td>${transaksi.status}</td>
                     <td>
-                        <button class="btn btn-info btn-sm" onclick="lihatStruk(${index})">Struk</button>
+                        ${transaksi.buktiPembayaran ? `<a href="#">Lihat Bukti</a>` : '-'}
+                    </td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="lihatStruk(${index})">Lihat Struk</button>
                     </td>
                 `;
                 transaksiTable.appendChild(row);
             });
         }
 
-        // Lihat struk
+        // Tampilkan struk
         function lihatStruk(index) {
             const transaksi = transaksiList[index];
-            const strukContent = document.getElementById('strukContent');
-            strukContent.innerHTML = `
-                <p><strong>ID Transaksi:</strong> ${transaksi.id}</p>
-                <p><strong>Pelanggan:</strong> ${transaksi.pelanggan}</p>
-                <p><strong>Total:</strong> Rp ${transaksi.total}</p>
-                <p><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</p>
-                <p><strong>Status:</strong> ${transaksi.status}</p>
+            let strukContent = `
+                <h5>Struk Transaksi</h5>
+                <p>ID: ${transaksi.id}</p>
+                <p>Pelanggan: ${transaksi.pelanggan}</p>
+                <p>Total: Rp ${transaksi.total}</p>
+                <p>Jumlah Dibayar: Rp ${transaksi.bayar}</p>
+                <p>Status: ${transaksi.status}</p>
+                <p>Metode Pembayaran: ${transaksi.metodePembayaran}</p>
+                ${transaksi.buktiPembayaran ? `<p><strong>Bukti Pembayaran:</strong> <a href="#">Lihat</a></p>` : ''}
             `;
+            document.getElementById('strukContent').innerHTML = strukContent;
+            const strukModal = new bootstrap.Modal(document.getElementById('strukModal'));
+            strukModal.show();
         }
 
-        // Render data pelanggan dan produk
+        // Fungsi untuk mencetak struk
+        function printStruk() {
+            const strukContent = document.getElementById('strukContent').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Struk Transaksi</title>
+                    </head>
+                    <body>
+                        ${strukContent}
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
         renderPelanggan();
         renderProduk();
         renderTransaksi();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
