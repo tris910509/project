@@ -107,74 +107,78 @@
         </table>
     </div>
 
-    <!-- Modal Detail Transaksi -->
-    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="detailModalLabel">Detail Transaksi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="detailContent">
-                    <!-- Detail transaksi akan ditampilkan di sini -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="sendWhatsApp">Kirim ke WhatsApp</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         let keranjang = [];
         const pelangganList = JSON.parse(localStorage.getItem('pelanggan')) || [];
         const produkList = JSON.parse(localStorage.getItem('produk')) || [];
         const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
 
-        // Render pelanggan dan produk
-        function renderDropdown(id, data, labelKey) {
-            const dropdown = document.getElementById(id);
-            dropdown.innerHTML = '<option value="" disabled selected>Pilih</option>';
-            data.forEach(item => {
+        // Render dropdown pelanggan
+        function renderPelanggan() {
+            const pelangganSelect = document.getElementById('pelanggan');
+            pelangganList.forEach(pelanggan => {
                 const option = document.createElement('option');
-                option.value = JSON.stringify(item);
-                option.textContent = item[labelKey];
-                dropdown.appendChild(option);
+                option.value = pelanggan.nama;
+                option.textContent = pelanggan.nama;
+                pelangganSelect.appendChild(option);
             });
         }
 
-        // Event handler metode pembayaran
+        // Render dropdown produk
+        function renderProduk() {
+            const produkSelect = document.getElementById('produk');
+            produkList.forEach(produk => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify(produk);
+                option.textContent = `${produk.nama} - Rp ${produk.harga}`;
+                produkSelect.appendChild(option);
+            });
+        }
+
+        // Menangani metode pembayaran
         document.getElementById('metodePembayaran').addEventListener('change', function () {
             const metode = this.value;
-            document.getElementById('buktiPembayaranDiv').style.display = metode === 'Cash' ? 'none' : 'block';
+            const buktiDiv = document.getElementById('buktiPembayaranDiv');
+            buktiDiv.style.display = metode === 'Cash' ? 'none' : 'block';
         });
 
-        // Tambahkan produk ke keranjang
+        // Tambah ke keranjang
         document.getElementById('tambahKeranjang').addEventListener('click', () => {
-            const produk = JSON.parse(document.getElementById('produk').value || '{}');
-            const jumlah = parseInt(document.getElementById('jumlah').value || 0);
+            const produk = JSON.parse(document.getElementById('produk').value);
+            const jumlah = parseInt(document.getElementById('jumlah').value);
+
             if (jumlah > 0) {
-                keranjang.push({ ...produk, jumlah, subtotal: produk.harga * jumlah });
+                keranjang.push({
+                    nama: produk.nama,
+                    harga: produk.harga,
+                    jumlah,
+                    subtotal: produk.harga * jumlah
+                });
                 renderKeranjang();
+            } else {
+                alert('Jumlah harus lebih dari 0');
             }
         });
 
         function renderKeranjang() {
-            const tbody = document.querySelector('#keranjangTable tbody');
-            tbody.innerHTML = '';
+            const keranjangTable = document.querySelector('#keranjangTable tbody');
+            keranjangTable.innerHTML = '';
             let total = 0;
+
             keranjang.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.nama}</td>
+                    <td>Rp ${item.harga}</td>
+                    <td>${item.jumlah}</td>
+                    <td>Rp ${item.subtotal}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="hapusKeranjang(${index})">Hapus</button></td>
+                `;
+                keranjangTable.appendChild(row);
                 total += item.subtotal;
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${item.nama}</td>
-                        <td>${item.harga}</td>
-                        <td>${item.jumlah}</td>
-                        <td>${item.subtotal}</td>
-                        <td><button class="btn btn-danger btn-sm" onclick="hapusKeranjang(${index})">Hapus</button></td>
-                    </tr>`;
             });
+
             document.getElementById('total').value = total;
         }
 
@@ -183,80 +187,102 @@
             renderKeranjang();
         }
 
-        // Proses Transaksi
         document.getElementById('transaksiForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            const pelanggan = JSON.parse(document.getElementById('pelanggan').value || '{}');
-            const total = parseInt(document.getElementById('total').value || 0);
-            const metodePembayaran = document.getElementById('metodePembayaran').value;
-            const bayar = parseInt(document.getElementById('bayar').value || 0);
-            const id = 'TRX-' + Date.now();
-            let status = 'Belum Lunas';
-            let buktiPembayaran = null;
 
-            if (metodePembayaran !== 'Cash') {
-                const file = document.getElementById('buktiPembayaran').files[0];
-                buktiPembayaran = file ? `${id}.${file.name.split('.').pop()}` : null;
-            }
+            const pelanggan = document.getElementById('pelanggan').value;
+            const total = document.getElementById('total').value;
+            const metodePembayaran = document.getElementById('metodePembayaran').value;
+            const bayar = parseInt(document.getElementById('bayar').value);
+            const transaksiId = 'TRX-' + Date.now();
+            let status = 'Belum Lunas';
 
             if (metodePembayaran === 'Cash' && bayar >= total) {
                 status = 'Lunas';
+            } else if (metodePembayaran !== 'Cash') {
+                status = 'Proses';
             }
 
-            transaksiList.push({ id, pelanggan: pelanggan.nama, total, metodePembayaran, bayar, status, buktiPembayaran });
-            localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-            resetForm();
-            renderTransaksi();
-        });
+            let buktiPembayaran = null;
+            if (metodePembayaran !== 'Cash') {
+                const fileInput = document.getElementById('buktiPembayaran');
+                const file = fileInput.files[0];
+                if (file) {
+                    const fileName = `${transaksiId}.${file.name.split('.').pop()}`;
+                    buktiPembayaran = fileName;
+                }
+            }
 
-        function resetForm() {
+            transaksiList.push({
+                id: transaksiId,
+                pelanggan,
+                total,
+                metodePembayaran,
+                bayar,
+                status,
+                buktiPembayaran
+            });
+
+            localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+            renderTransaksi();
+
+            // Reset form
             document.getElementById('transaksiForm').reset();
             keranjang = [];
             renderKeranjang();
-        }
+        });
 
         function renderTransaksi() {
-            const tbody = document.querySelector('#transaksiTable tbody');
-            tbody.innerHTML = '';
+            const transaksiTable = document.querySelector('#transaksiTable tbody');
+            transaksiTable.innerHTML = '';
             transaksiList.forEach((transaksi, index) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${transaksi.id}</td>
-                        <td>${transaksi.pelanggan}</td>
-                        <td>${transaksi.total}</td>
-                        <td>${transaksi.metodePembayaran}</td>
-                        <td>${transaksi.status}</td>
-                        <td><button class="btn btn-info btn-sm" onclick="viewDetail(${index})">Detail</button></td>
-                    </tr>`;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${transaksi.id}</td>
+                    <td>${transaksi.pelanggan}</td>
+                    <td>Rp ${transaksi.total}</td>
+                    <td>${transaksi.metodePembayaran}</td>
+                    <td>${transaksi.status}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewDetail(${index})">Detail</button>
+                        ${transaksi.metodePembayaran !== 'Cash' ? 
+                            `<button class="btn btn-success btn-sm" onclick="sendToWhatsApp(${index})">Kirim ke WhatsApp</button>` : 
+                            ''
+                        }
+                    </td>
+                `;
+                transaksiTable.appendChild(row);
             });
         }
 
         function viewDetail(index) {
             const transaksi = transaksiList[index];
-            const content = `
-                <p><strong>ID Transaksi:</strong> ${transaksi.id}</p>
-                <p><strong>Pelanggan:</strong> ${transaksi.pelanggan}</p>
-                <p><strong>Total:</strong> ${transaksi.total}</p>
-                <p><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</p>
-                <p><strong>Status:</strong> ${transaksi.status}</p>
-                ${transaksi.buktiPembayaran ? `<p><strong>Bukti Pembayaran:</strong> ${transaksi.buktiPembayaran}</p>` : ''}
-            `;
-            document.getElementById('detailContent').innerHTML = content;
-
-            document.getElementById('sendWhatsApp').onclick = function () {
-                const message = `Detail Transaksi:\nID: ${transaksi.id}\nPelanggan: ${transaksi.pelanggan}\nTotal: ${transaksi.total}\nStatus: ${transaksi.status}`;
-                const whatsappLink = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                window.open(whatsappLink, '_blank');
-            };
-            const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
-            detailModal.show();
+            alert(`ID Transaksi: ${transaksi.id}\nPelanggan: ${transaksi.pelanggan}\nTotal: Rp ${transaksi.total}\nMetode Pembayaran: ${transaksi.metodePembayaran}\nStatus: ${transaksi.status}`);
         }
 
-        renderDropdown('pelanggan', pelangganList, 'nama');
-        renderDropdown('produk', produkList, 'nama');
+        function sendToWhatsApp(index) {
+            const transaksi = transaksiList[index];
+            const pelanggan = transaksi.pelanggan;
+            const total = transaksi.total;
+            const metodePembayaran = transaksi.metodePembayaran;
+            const buktiPembayaran = transaksi.buktiPembayaran;
+
+            // Format pesan WhatsApp
+            const message = `Transaksi Pembayaran\nID: ${transaksi.id}\nPelanggan: ${pelanggan}\nTotal: Rp ${total}\nMetode Pembayaran: ${metodePembayaran}\nBukti Pembayaran: ${buktiPembayaran ? 'Ada' : 'Tidak Ada'}`;
+
+            // Nomor WhatsApp Admin
+            const adminPhone = "6281234567890";  // Ganti dengan nomor admin yang sebenarnya
+            const whatsappLink = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
+
+            window.open(whatsappLink, '_blank');
+        }
+
+        renderPelanggan();
+        renderProduk();
         renderTransaksi();
     </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
