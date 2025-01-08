@@ -10,13 +10,41 @@
     <div class="container mt-5">
         <h2 class="text-center">Laporan Transaksi</h2>
 
-        <!-- Filter Laporan -->
+        <!-- Statistik Transaksi -->
         <div class="row mb-4">
             <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Transaksi</h5>
+                        <h3 id="totalTransaksi">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Pelanggan</h5>
+                        <h3 id="totalPelanggan">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Pendapatan</h5>
+                        <h3 id="totalPendapatan">Rp 0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter dan Ekspor -->
+        <div class="row mb-4">
+            <div class="col-md-3">
                 <label for="filterTanggal" class="form-label">Filter Tanggal</label>
                 <input type="date" id="filterTanggal" class="form-control">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="filterStatus" class="form-label">Filter Status</label>
                 <select id="filterStatus" class="form-control">
                     <option value="">Semua Status</option>
@@ -25,9 +53,12 @@
                     <option value="Pending">Pending</option>
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="filterPelanggan" class="form-label">Filter Pelanggan</label>
                 <input type="text" id="filterPelanggan" class="form-control" placeholder="Nama Pelanggan">
+            </div>
+            <div class="col-md-3 text-end">
+                <button class="btn btn-success mt-4" id="exportCSV">Ekspor CSV</button>
             </div>
         </div>
 
@@ -41,14 +72,34 @@
                     <th>Pelanggan</th>
                     <th>Metode Pembayaran</th>
                     <th>Status</th>
-                    <th>Produk</th>
                     <th>Total</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody id="laporanTable">
                 <!-- Data akan diisi melalui JavaScript -->
             </tbody>
         </table>
+    </div>
+
+    <!-- Modal Detail Transaksi -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">Detail Transaksi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul id="detailList">
+                        <!-- Detail transaksi -->
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -62,6 +113,17 @@
             }).format(angka);
         }
 
+        // Render statistik transaksi
+        function renderStatistik() {
+            const totalTransaksi = transaksiList.length;
+            const pelangganSet = new Set(transaksiList.map(t => t.pelanggan));
+            const totalPendapatan = transaksiList.reduce((sum, transaksi) => sum + transaksi.total, 0);
+
+            document.getElementById('totalTransaksi').innerText = totalTransaksi;
+            document.getElementById('totalPelanggan').innerText = pelangganSet.size;
+            document.getElementById('totalPendapatan').innerText = formatRupiah(totalPendapatan);
+        }
+
         // Render laporan transaksi
         function renderLaporan() {
             const filterTanggal = document.getElementById('filterTanggal').value;
@@ -71,7 +133,6 @@
             const laporanTable = document.getElementById('laporanTable');
             laporanTable.innerHTML = '';
 
-            // Filter data transaksi berdasarkan input
             const filteredTransaksi = transaksiList.filter(transaksi => {
                 const matchTanggal =
                     !filterTanggal || transaksi.tanggal === filterTanggal;
@@ -83,12 +144,7 @@
                 return matchTanggal && matchStatus && matchPelanggan;
             });
 
-            // Render data transaksi ke dalam tabel
             filteredTransaksi.forEach((transaksi, index) => {
-                const produkList = transaksi.produk
-                    .map(produk => `${produk.nama} (${produk.jumlah}x)`)
-                    .join(', ');
-
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
@@ -97,19 +153,56 @@
                     <td>${transaksi.pelanggan}</td>
                     <td>${transaksi.metodePembayaran}</td>
                     <td>${transaksi.status}</td>
-                    <td>${produkList}</td>
                     <td>${formatRupiah(transaksi.total)}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="showDetailModal(${index})">Detail</button>
+                    </td>
                 `;
                 laporanTable.appendChild(row);
             });
         }
 
-        // Event listener untuk filter
-        document.getElementById('filterTanggal').addEventListener('input', renderLaporan);
-        document.getElementById('filterStatus').addEventListener('change', renderLaporan);
-        document.getElementById('filterPelanggan').addEventListener('input', renderLaporan);
+        // Tampilkan modal detail transaksi
+        function showDetailModal(index) {
+            const transaksi = transaksiList[index];
+            const detailList = document.getElementById('detailList');
+            detailList.innerHTML = `
+                <li><strong>ID Transaksi:</strong> ${transaksi.id}</li>
+                <li><strong>Tanggal:</strong> ${transaksi.tanggal}</li>
+                <li><strong>Pelanggan:</strong> ${transaksi.pelanggan}</li>
+                <li><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</li>
+                <li><strong>Status:</strong> ${transaksi.status}</li>
+                <li><strong>Produk:</strong></li>
+                <ul>
+                    ${transaksi.produk.map(p => `<li>${p.nama} (${p.jumlah}x) - ${formatRupiah(p.harga)}</li>`).join('')}
+                </ul>
+                <li><strong>Total:</strong> ${formatRupiah(transaksi.total)}</li>
+            `;
 
-        // Render laporan pertama kali
+            const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
+            detailModal.show();
+        }
+
+        // Ekspor laporan ke CSV
+        function exportCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "ID Transaksi,Tanggal,Pelanggan,Metode Pembayaran,Status,Total\n";
+            transaksiList.forEach(transaksi => {
+                csvContent += `${transaksi.id},${transaksi.tanggal},${transaksi.pelanggan},${transaksi.metodePembayaran},${transaksi.status},${transaksi.total}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "laporan_transaksi.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        document.getElementById('exportCSV').addEventListener('click', exportCSV);
+
+        renderStatistik();
         renderLaporan();
     </script>
 
