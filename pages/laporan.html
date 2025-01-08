@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Transaksi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container mt-5">
@@ -17,29 +18,18 @@
             <button class="btn btn-success" id="exportCSV">Ekspor CSV</button>
         </div>
 
-        <!-- Statistik -->
+        <!-- Statistik Pendapatan -->
         <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Transaksi</h5>
-                        <h3 id="totalTransaksi">0</h3>
-                    </div>
-                </div>
+            <div class="col-md-6">
+                <canvas id="chartPendapatan"></canvas>
             </div>
-            <div class="col-md-4">
-                <div class="card text-center">
+            <div class="col-md-6">
+                <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Total Pelanggan</h5>
-                        <h3 id="totalPelanggan">0</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Pendapatan</h5>
-                        <h3 id="totalPendapatan">Rp 0</h3>
+                        <h5>Statistik Pendapatan</h5>
+                        <p>Total Pendapatan Hari Ini: <strong id="pendapatanHarian">Rp 0</strong></p>
+                        <p>Total Pendapatan Bulan Ini: <strong id="pendapatanBulanan">Rp 0</strong></p>
+                        <p>Total Pendapatan Tahun Ini: <strong id="pendapatanTahunan">Rp 0</strong></p>
                     </div>
                 </div>
             </div>
@@ -65,11 +55,11 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label for="sortBy" class="form-label">Urutkan Berdasarkan</label>
-                <select id="sortBy" class="form-control">
-                    <option value="tanggal">Tanggal</option>
-                    <option value="total">Total</option>
-                    <option value="status">Status</option>
+                <label for="rowsPerPage" class="form-label">Tampilkan Baris</label>
+                <select id="rowsPerPage" class="form-control">
+                    <option value="10">10</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
                 </select>
             </div>
         </div>
@@ -92,30 +82,19 @@
                 <!-- Data akan diisi melalui JavaScript -->
             </tbody>
         </table>
-    </div>
 
-    <!-- Modal Detail Transaksi -->
-    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="detailModalLabel">Detail Transaksi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <ul id="detailList">
-                        <!-- Detail transaksi -->
-                    </ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                </div>
-            </div>
-        </div>
+        <!-- Pagination -->
+        <nav>
+            <ul class="pagination justify-content-center" id="pagination">
+                <!-- Pagination Buttons -->
+            </ul>
+        </nav>
     </div>
 
     <script>
         const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+        let currentPage = 1;
+        let rowsPerPage = 10;
 
         // Fungsi memformat angka ke Rupiah
         function formatRupiah(angka) {
@@ -125,47 +104,69 @@
             }).format(angka);
         }
 
-        // Statistik transaksi
-        function renderStatistik() {
-            const totalTransaksi = transaksiList.length;
-            const pelangganSet = new Set(transaksiList.map(t => t.pelanggan));
-            const totalPendapatan = transaksiList.reduce((sum, transaksi) => sum + transaksi.total, 0);
+        // Statistik Pendapatan
+        function calculatePendapatan() {
+            const today = new Date().toISOString().split('T')[0];
+            const thisMonth = new Date().toISOString().slice(0, 7);
+            const thisYear = new Date().toISOString().slice(0, 4);
 
-            document.getElementById('totalTransaksi').innerText = totalTransaksi;
-            document.getElementById('totalPelanggan').innerText = pelangganSet.size;
-            document.getElementById('totalPendapatan').innerText = formatRupiah(totalPendapatan);
+            const pendapatanHarian = transaksiList
+                .filter(t => t.tanggal === today)
+                .reduce((sum, t) => sum + t.total, 0);
+
+            const pendapatanBulanan = transaksiList
+                .filter(t => t.tanggal.startsWith(thisMonth))
+                .reduce((sum, t) => sum + t.total, 0);
+
+            const pendapatanTahunan = transaksiList
+                .filter(t => t.tanggal.startsWith(thisYear))
+                .reduce((sum, t) => sum + t.total, 0);
+
+            document.getElementById('pendapatanHarian').innerText = formatRupiah(pendapatanHarian);
+            document.getElementById('pendapatanBulanan').innerText = formatRupiah(pendapatanBulanan);
+            document.getElementById('pendapatanTahunan').innerText = formatRupiah(pendapatanTahunan);
+
+            return { pendapatanHarian, pendapatanBulanan, pendapatanTahunan };
         }
 
-        // Render laporan
-        function renderLaporan() {
-            const filterTanggal = document.getElementById('filterTanggal').value;
-            const filterPelanggan = document.getElementById('filterPelanggan').value.toLowerCase();
-            const filterStatus = document.getElementById('filterStatus').value;
-            const sortBy = document.getElementById('sortBy').value;
+        // Render Chart
+        function renderChart() {
+            const ctx = document.getElementById('chartPendapatan').getContext('2d');
+            const { pendapatanHarian, pendapatanBulanan, pendapatanTahunan } = calculatePendapatan();
 
-            let filteredTransaksi = transaksiList.filter(transaksi => {
-                const matchTanggal = !filterTanggal || transaksi.tanggal === filterTanggal;
-                const matchPelanggan = !filterPelanggan || transaksi.pelanggan.toLowerCase().includes(filterPelanggan);
-                const matchStatus = !filterStatus || transaksi.status === filterStatus;
-
-                return matchTanggal && matchPelanggan && matchStatus;
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Harian', 'Bulanan', 'Tahunan'],
+                    datasets: [{
+                        label: 'Pendapatan',
+                        data: [pendapatanHarian, pendapatanBulanan, pendapatanTahunan],
+                        backgroundColor: ['#4caf50', '#2196f3', '#ff9800'],
+                        borderColor: ['#388e3c', '#1976d2', '#f57c00'],
+                        borderWidth: 1,
+                    }],
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true },
+                    },
+                },
             });
+        }
 
-            if (sortBy === 'total') {
-                filteredTransaksi.sort((a, b) => b.total - a.total);
-            } else if (sortBy === 'status') {
-                filteredTransaksi.sort((a, b) => a.status.localeCompare(b.status));
-            } else {
-                filteredTransaksi.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-            }
+        // Render Laporan
+        function renderLaporan() {
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const data = transaksiList.slice(start, end);
 
             const laporanTable = document.getElementById('laporanTable');
             laporanTable.innerHTML = '';
 
-            filteredTransaksi.forEach((transaksi, index) => {
+            data.forEach((transaksi, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${index + 1}</td>
+                    <td>${start + index + 1}</td>
                     <td>${transaksi.id}</td>
                     <td>${transaksi.tanggal}</td>
                     <td>${transaksi.pelanggan}</td>
@@ -173,59 +174,41 @@
                     <td>${transaksi.status}</td>
                     <td>${formatRupiah(transaksi.total)}</td>
                     <td>
-                        <button class="btn btn-info btn-sm" onclick="showDetailModal(${index})">Detail</button>
+                        <button class="btn btn-info btn-sm">Detail</button>
                     </td>
                 `;
                 laporanTable.appendChild(row);
             });
+
+            renderPagination();
         }
 
-        // Detail transaksi
-        function showDetailModal(index) {
-            const transaksi = transaksiList[index];
-            const detailList = document.getElementById('detailList');
-            detailList.innerHTML = `
-                <li><strong>ID Transaksi:</strong> ${transaksi.id}</li>
-                <li><strong>Tanggal:</strong> ${transaksi.tanggal}</li>
-                <li><strong>Pelanggan:</strong> ${transaksi.pelanggan}</li>
-                <li><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</li>
-                <li><strong>Status:</strong> ${transaksi.status}</li>
-                <li><strong>Produk:</strong></li>
-                <ul>
-                    ${transaksi.produk.map(p => `<li>${p.nama} (${p.jumlah}x) - ${formatRupiah(p.harga)}</li>`).join('')}
-                </ul>
-                <li><strong>Total:</strong> ${formatRupiah(transaksi.total)}</li>
-            `;
-            const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
-            detailModal.show();
+        // Render Pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(transaksiList.length / rowsPerPage);
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                li.addEventListener('click', () => {
+                    currentPage = i;
+                    renderLaporan();
+                });
+                pagination.appendChild(li);
+            }
         }
 
-        // Ekspor CSV
-        function exportCSV() {
-            let csvContent = "data:text/csv;charset=utf-8,ID Transaksi,Tanggal,Pelanggan,Metode Pembayaran,Status,Total\n";
-            transaksiList.forEach(transaksi => {
-                csvContent += `${transaksi.id},${transaksi.tanggal},${transaksi.pelanggan},${transaksi.metodePembayaran},${transaksi.status},${transaksi.total}\n`;
-            });
+        document.getElementById('rowsPerPage').addEventListener('change', (e) => {
+            rowsPerPage = parseInt(e.target.value);
+            currentPage = 1;
+            renderLaporan();
+        });
 
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "laporan_transaksi.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        document.getElementById('exportCSV').addEventListener('click', exportCSV);
-
-        renderStatistik();
+        renderChart();
         renderLaporan();
-
-        document.getElementById('filterTanggal').addEventListener('input', renderLaporan);
-        document.getElementById('filterPelanggan').addEventListener('input', renderLaporan);
-        document.getElementById('filterStatus').addEventListener('change', renderLaporan);
-        document.getElementById('sortBy').addEventListener('change', renderLaporan);
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
