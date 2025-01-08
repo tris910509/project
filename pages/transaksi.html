@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transaksi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <script>
@@ -233,18 +234,30 @@
 
             let status;
             const buktiPembayaran = document.getElementById('buktiPembayaran').files[0];
-
-            // Simpan bukti pembayaran
             let buktiPembayaranUrl = '';
+
             if (buktiPembayaran) {
-                buktiPembayaranUrl = `bukti/${transaksiId}_${buktiPembayaran.name}`;
-                // Simulate saving the file path (use server-side code for actual file upload)
-                console.log(`Bukti pembayaran disimpan di: ${buktiPembayaranUrl}`);
+                const fileType = buktiPembayaran.type;
+                
+                if (fileType === 'application/pdf') {
+                    buktiPembayaranUrl = `bukti/${transaksiId}_${buktiPembayaran.name}`;
+                    console.log(`Bukti pembayaran disimpan di: ${buktiPembayaranUrl}`);
+                } else if (fileType.startsWith('image/')) {
+                    // Konversi gambar ke PDF
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgData = e.target.result;
+                        const doc = new jsPDF();
+                        doc.addImage(imgData, 'JPEG', 10, 10, 180, 160);
+                        buktiPembayaranUrl = `bukti/${transaksiId}.pdf`;
+                        doc.save(buktiPembayaranUrl);
+                    };
+                    reader.readAsDataURL(buktiPembayaran);
+                }
             }
 
             if (metodePembayaran === 'Cash') {
                 if (bayar < total) {
-                    // Menampilkan modal konfirmasi pembayaran jika bayar kurang dari total
                     const konfirmasiModal = new bootstrap.Modal(document.getElementById('konfirmasiModal'));
                     konfirmasiModal.show();
                     document.getElementById('konfirmasiPembayaran').addEventListener('click', () => {
@@ -261,28 +274,21 @@
             }
         });
 
-        // Fungsi tambah transaksi
-        function tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, transaksiId, buktiPembayaranUrl) {
+        // Menambah transaksi
+        function tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, id, bukti) {
             const transaksi = {
-                id: transaksiId,
+                id,
                 pelanggan,
                 total,
                 metodePembayaran,
                 bayar,
                 status,
-                buktiPembayaran: buktiPembayaranUrl,
-                keranjang
+                buktiPembayaran: bukti || null
             };
 
             transaksiList.push(transaksi);
             localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-            alert('Transaksi berhasil diproses');
-            document.getElementById('transaksiForm').reset();
-            keranjang = [];
-            renderKeranjang();
             renderTransaksi();
-            const konfirmasiModal = new bootstrap.Modal(document.getElementById('konfirmasiModal'));
-            konfirmasiModal.hide();
         }
 
         // Render transaksi
@@ -299,23 +305,21 @@
                     <td>${transaksi.metodePembayaran}</td>
                     <td>${transaksi.status}</td>
                     <td>
-                        <button class="btn btn-info btn-sm" onclick="lihatStruk(${index})">Struk</button>
+                        <button class="btn btn-info btn-sm" onclick="lihatStruk('${transaksi.id}')">Lihat Struk</button>
                     </td>
                 `;
                 transaksiTable.appendChild(row);
             });
         }
 
-        // Lihat struk
-        function lihatStruk(index) {
-            const transaksi = transaksiList[index];
-            const strukContent = document.getElementById('strukContent');
+        // Lihat struk transaksi
+        function lihatStruk(id) {
+            const transaksi = transaksiList.find(t => t.id === id);
             let buktiPembayaranHtml = '';
-            
             if (transaksi.buktiPembayaran) {
                 buktiPembayaranHtml = `<p><strong>Bukti Pembayaran:</strong> <a href="${transaksi.buktiPembayaran}" target="_blank">Lihat Bukti Pembayaran</a></p>`;
             }
-
+            const strukContent = document.getElementById('strukContent');
             strukContent.innerHTML = `
                 <p><strong>ID Transaksi:</strong> ${transaksi.id}</p>
                 <p><strong>Pelanggan:</strong> ${transaksi.pelanggan}</p>
