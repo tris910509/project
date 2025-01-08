@@ -23,12 +23,15 @@
         <!-- Form Transaksi -->
         <h4>Tambah Transaksi</h4>
         <form id="transaksiForm" class="mb-4">
+            <!-- Pilih Pelanggan -->
             <div class="mb-3">
                 <label for="pelanggan" class="form-label">Pilih Pelanggan</label>
                 <select class="form-select" id="pelanggan" required>
                     <option value="" disabled selected>Pilih Pelanggan</option>
                 </select>
             </div>
+
+            <!-- Pilih Produk -->
             <div class="mb-3">
                 <label for="produk" class="form-label">Pilih Produk</label>
                 <div class="row">
@@ -45,19 +48,30 @@
                     </div>
                 </div>
             </div>
-            <h5>Keranjang</h5>
+
+            <!-- Keranjang -->
+            <h5>Keranjang Belanja</h5>
             <table class="table table-bordered mb-3">
                 <thead>
                     <tr>
                         <th>Produk</th>
                         <th>Jumlah</th>
+                        <th>Harga</th>
                         <th>Potongan</th>
-                        <th>Total</th>
+                        <th>Subtotal</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="keranjangList"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-end"><strong>Total</strong></td>
+                        <td colspan="2" id="totalHarga">Rp 0</td>
+                    </tr>
+                </tfoot>
             </table>
+
+            <!-- Metode Pembayaran -->
             <div class="mb-3">
                 <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
                 <select class="form-select" id="metodePembayaran" required>
@@ -68,17 +82,23 @@
                     <option value="EWallet">E-Wallet</option>
                 </select>
             </div>
+
+            <!-- Bukti Pembayaran -->
             <div class="mb-3" id="buktiPembayaranContainer" style="display: none;">
                 <label for="buktiPembayaran" class="form-label">Unggah Bukti Pembayaran</label>
                 <input type="file" class="form-control" id="buktiPembayaran">
             </div>
+
+            <!-- Jumlah Dibayar -->
             <div class="mb-3">
                 <label for="bayar" class="form-label">Jumlah Dibayar</label>
                 <input type="number" class="form-control" id="bayar" placeholder="Masukkan Jumlah Dibayar" required>
             </div>
+
             <button type="submit" class="btn btn-primary">Proses Transaksi</button>
         </form>
 
+        <!-- Daftar Transaksi -->
         <h4>Daftar Transaksi</h4>
         <table class="table table-striped">
             <thead>
@@ -89,155 +109,13 @@
                     <th>Metode</th>
                     <th>Total</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody id="transaksiTable"></tbody>
         </table>
     </div>
 
-    <script>
-        let keranjang = [];
-        let idCounter = 1;
-
-        function getPelanggan() {
-            return JSON.parse(localStorage.getItem('pelanggan')) || [];
-        }
-
-        function getProduk() {
-            return JSON.parse(localStorage.getItem('produk')) || [];
-        }
-
-        function getTransaksi() {
-            return JSON.parse(localStorage.getItem('transaksi')) || [];
-        }
-
-        function saveTransaksi(data) {
-            localStorage.setItem('transaksi', JSON.stringify(data));
-        }
-
-        function renderPelanggan() {
-            const pelangganList = getPelanggan();
-            const pelangganSelect = document.getElementById('pelanggan');
-            pelangganList.forEach((pelanggan) => {
-                const option = document.createElement('option');
-                option.value = pelanggan.id;
-                option.textContent = `${pelanggan.nama} (ID: ${pelanggan.id})`;
-                pelangganSelect.appendChild(option);
-            });
-        }
-
-        function renderProduk() {
-            const produkList = getProduk();
-            const produkSelect = document.getElementById('produk');
-            produkList.forEach((produk) => {
-                const option = document.createElement('option');
-                option.value = produk.nama;
-                option.textContent = `${produk.nama} - Rp ${produk.harga}`;
-                produkSelect.appendChild(option);
-            });
-        }
-
-        function tambahKeKeranjang() {
-            const produkSelect = document.getElementById('produk');
-            const jumlah = parseInt(document.getElementById('jumlahProduk').value);
-            if (!produkSelect.value || isNaN(jumlah) || jumlah < 1) {
-                alert('Pilih produk dan masukkan jumlah yang valid!');
-                return;
-            }
-
-            const produk = produkSelect.value;
-            keranjang.push({ produk, jumlah, harga: 10000, potongan: 1000 });
-            renderKeranjang();
-        }
-
-        function renderKeranjang() {
-            const keranjangList = document.getElementById('keranjangList');
-            keranjangList.innerHTML = '';
-            keranjang.forEach((item, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.produk}</td>
-                    <td>${item.jumlah}</td>
-                    <td>Rp ${item.potongan * item.jumlah}</td>
-                    <td>Rp ${(item.harga - item.potongan) * item.jumlah}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="hapusDariKeranjang(${index})">Hapus</button></td>
-                `;
-                keranjangList.appendChild(row);
-            });
-        }
-
-        function hapusDariKeranjang(index) {
-            keranjang.splice(index, 1);
-            renderKeranjang();
-        }
-
-        function prosesTransaksi(e) {
-            e.preventDefault();
-
-            const pelanggan = document.getElementById('pelanggan').value;
-            const metode = document.getElementById('metodePembayaran').value;
-            const bayar = parseFloat(document.getElementById('bayar').value);
-            const total = keranjang.reduce((sum, item) => sum + (item.jumlah * (item.harga - item.potongan)), 0);
-            const status =
-                metode === 'Cash' && bayar >= total
-                    ? 'Lunas'
-                    : metode === 'Cash'
-                    ? 'Belum Lunas'
-                    : 'Menunggu Konfirmasi';
-
-            if (metode !== 'Cash' || (metode === 'Cash' && bayar < total)) {
-                alert('Transaksi dipindahkan ke halaman pembayaran untuk konfirmasi.');
-            }
-
-            const transaksiList = getTransaksi();
-            transaksiList.push({
-                id: `TRX-${idCounter++}`,
-                pelanggan,
-                produk: keranjang,
-                metode,
-                total,
-                bayar,
-                status,
-            });
-
-            saveTransaksi(transaksiList);
-            keranjang = [];
-            renderKeranjang();
-            renderTransaksi();
-            alert('Transaksi berhasil diproses!');
-        }
-
-        function renderTransaksi() {
-            const transaksiList = getTransaksi();
-            const transaksiTable = document.getElementById('transaksiTable');
-            transaksiTable.innerHTML = '';
-
-            transaksiList.forEach((transaksi) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${transaksi.id}</td>
-                    <td>${transaksi.pelanggan}</td>
-                    <td>${transaksi.produk.map((p) => `${p.produk} x ${p.jumlah}`).join(', ')}</td>
-                    <td>${transaksi.metode}</td>
-                    <td>Rp ${transaksi.total}</td>
-                    <td>${transaksi.status}</td>
-                    <td>
-                        ${transaksi.status === 'Menunggu Konfirmasi' ? `<button class="btn btn-success btn-sm" onclick="konfirmasiPembayaran(${transaksi.id})">Konfirmasi</button>` : ''}
-                        <button class="btn btn-danger btn-sm" onclick="hapusTransaksi(${transaksi.id})">Hapus</button>
-                    </td>
-                `;
-                transaksiTable.appendChild(row);
-            });
-        }
-
-        document.getElementById('transaksiForm').addEventListener('submit', prosesTransaksi);
-        document.addEventListener('DOMContentLoaded', () => {
-            renderPelanggan();
-            renderProduk();
-            renderKeranjang();
-            renderTransaksi();
-        });
-    </script>
+    <script src="transaksi.js"></script>
 </body>
 </html>
