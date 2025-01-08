@@ -84,4 +84,54 @@
                         ${
                             transaksi.metodePembayaran !== 'Cash' &&
                             transaksi.status !== 'Lunas'
-                               
+                                ? `<button class="btn btn-success btn-sm" onclick="confirmPayment(${index})">Konfirmasi</button>`
+                                : ''
+                        }
+                        <button class="btn btn-danger btn-sm" onclick="deleteTransaksi(${index})">Hapus</button>
+                    </td>
+                `;
+                pembayaranTable.appendChild(row);
+            });
+        }
+
+        // Fungsi untuk konfirmasi pembayaran
+        function confirmPayment(index) {
+            currentConfirmIndex = index;
+            const transaksi = transaksiList[index];
+
+            document.getElementById('konfirmasiId').innerText = transaksi.id;
+            document.getElementById('konfirmasiNama').innerText = transaksi.pelanggan;
+            document.getElementById('konfirmasiMetode').innerText = transaksi.metodePembayaran;
+            document.getElementById('konfirmasiStatus').innerText = transaksi.status;
+
+            const modal = new bootstrap.Modal(document.getElementById('konfirmasiModal'));
+            modal.show();
+        }
+
+        // Fungsi untuk menyimpan konfirmasi pembayaran
+        document.getElementById('confirmPaymentBtn').addEventListener('click', () => {
+            if (currentConfirmIndex !== null) {
+                transaksiList[currentConfirmIndex].status = 'Lunas';
+                localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+                loadTable();
+
+                const modal = bootstrap.Modal.getInstance(document.getElementById('konfirmasiModal'));
+                modal.hide();
+            }
+        });
+
+        // Fungsi untuk menghapus transaksi
+        function deleteTransaksi(index) {
+            if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+                transaksiList.splice(index, 1);
+                localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+                loadTable();
+            }
+        }
+
+        // Muat tabel saat halaman dimuat
+        loadTable();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
