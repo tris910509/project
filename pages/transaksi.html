@@ -20,7 +20,15 @@
                 <label for="pelanggan" class="form-label">Pilih Pelanggan</label>
                 <select class="form-select" id="pelanggan" required>
                     <option value="" disabled selected>Pilih Pelanggan</option>
+                    <option value="Umum">Umum</option>
+                    <option value="Member">Member</option>
                 </select>
+            </div>
+
+            <!-- Input Nomor WhatsApp -->
+            <div class="mb-3">
+                <label for="whatsapp" class="form-label">Nomor WhatsApp Pelanggan</label>
+                <input type="text" class="form-control" id="whatsapp" placeholder="Contoh: 6281234567890" required>
             </div>
 
             <!-- Pilih Produk -->
@@ -28,6 +36,8 @@
                 <label for="produk" class="form-label">Pilih Produk</label>
                 <select class="form-select" id="produk" required>
                     <option value="" disabled selected>Pilih Produk</option>
+                    <option value="Produk A">Produk A</option>
+                    <option value="Produk B">Produk B</option>
                 </select>
             </div>
 
@@ -161,6 +171,7 @@
             e.preventDefault();
 
             const pelanggan = document.getElementById('pelanggan').value;
+            const whatsapp = document.getElementById('whatsapp').value;
             const total = document.getElementById('total').value;
             const metodePembayaran = document.getElementById('metodePembayaran').value;
             const bayar = document.getElementById('bayar').value;
@@ -171,6 +182,7 @@
             transaksiList.push({
                 id: idTransaksi,
                 pelanggan,
+                whatsapp,
                 total,
                 metodePembayaran,
                 status,
