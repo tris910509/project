@@ -308,7 +308,7 @@
                     <td>${transaksi.metodePembayaran}</td>
                     <td>${transaksi.status}</td>
                     <td>
-                        ${transaksi.buktiPembayaran ? `<a href="#">Lihat Bukti</a>` : '-'}
+                        ${transaksi.buktiPembayaran ? `<a href="https://github.com/tris910509/project/tree/main/bukti">Lihat Bukti</a>` : '-'}
                     </td>
                     <td>
                         <button class="btn btn-info btn-sm" onclick="lihatStruk(${index})">Lihat Struk</button>
@@ -329,7 +329,7 @@
                 <p>Jumlah Dibayar: Rp ${transaksi.bayar}</p>
                 <p>Status: ${transaksi.status}</p>
                 <p>Metode Pembayaran: ${transaksi.metodePembayaran}</p>
-                ${transaksi.buktiPembayaran ? `<p><strong>Bukti Pembayaran:</strong> <a href="#">Lihat</a></p>` : ''}
+                ${transaksi.buktiPembayaran ? `<p><strong>Bukti Pembayaran:</strong> <a href="https://github.com/tris910509/project/tree/main/bukti">Lihat</a></p>` : ''}
             `;
             document.getElementById('strukContent').innerHTML = strukContent;
             const strukModal = new bootstrap.Modal(document.getElementById('strukModal'));
