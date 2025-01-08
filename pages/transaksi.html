@@ -1,0 +1,98 @@
+let transaksiList = [];
+let keranjang = [];
+
+function toggleBuktiPembayaran() {
+    const metodePembayaran = document.getElementById('metodePembayaran').value;
+    const buktiDiv = document.getElementById('buktiPembayaranDiv');
+    const keteranganDiv = document.getElementById('keteranganPembayaranDiv');
+
+    if (metodePembayaran === 'Cash') {
+        buktiDiv.style.display = 'none';
+        keteranganDiv.style.display = 'none';
+    } else {
+        buktiDiv.style.display = 'block';
+        keteranganDiv.style.display = 'block';
+    }
+}
+
+function tambahKeKeranjang() {
+    const produk = document.getElementById('produk').value.split('|');
+    const namaProduk = produk[0];
+    const hargaProduk = parseInt(produk[1]);
+    keranjang.push({ namaProduk, hargaProduk });
+    renderKeranjang();
+}
+
+function renderKeranjang() {
+    const keranjangList = document.getElementById('keranjangList');
+    keranjangList.innerHTML = '';
+    let total = 0;
+
+    keranjang.forEach((item, index) => {
+        total += item.hargaProduk;
+        keranjangList.innerHTML += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                ${item.namaProduk} - Rp ${item.hargaProduk}
+                <button class="btn btn-danger btn-sm" onclick="hapusDariKeranjang(${index})">Hapus</button>
+            </li>`;
+    });
+
+    document.getElementById('totalDisplay').textContent = total;
+}
+
+function hapusDariKeranjang(index) {
+    keranjang.splice(index, 1);
+    renderKeranjang();
+}
+
+document.getElementById('transaksiForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const pelangganType = document.getElementById('pelanggan').value;
+    const pelanggan =
+        pelangganType === 'umum'
+            ? document.getElementById('pelangganUmum').value
+            : document.getElementById('member').value;
+    const metodePembayaran = document.getElementById('metodePembayaran').value;
+    const total = keranjang.reduce((acc, item) => acc + item.hargaProduk, 0);
+    const bayar = parseInt(document.getElementById('bayar').value);
+    const idTransaksi = 'TRX-' + Date.now();
+    let status = 'Belum Lunas';
+
+    if (metodePembayaran === 'Cash' && bayar >= total) {
+        status = 'Lunas';
+    }
+
+    const transaksi = {
+        id: idTransaksi,
+        pelanggan,
+        total,
+        metodePembayaran,
+        status,
+    };
+
+    transaksiList.push(transaksi);
+    renderTransaksi();
+    this.reset();
+    keranjang = [];
+    renderKeranjang();
+});
+
+function renderTransaksi() {
+    const daftarTransaksi = document.getElementById('daftarTransaksi');
+    daftarTransaksi.innerHTML = '';
+
+    transaksiList.forEach((transaksi, index) => {
+        daftarTransaksi.innerHTML += `
+            <tr>
+                <td>${transaksi.id}</td>
+                <td>${transaksi.pelanggan}</td>
+                <td>Rp ${transaksi.total}</td>
+                <td>${transaksi.metodePembayaran}</td>
+                <td>${transaksi.status}</td>
+                <td>
+                    <button class="btn btn-info btn-sm" onclick="lihatDetail(${index})">Detail</button>
+                </td>
+            </tr>`;
+    });
+}
