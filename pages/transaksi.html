@@ -32,19 +32,32 @@
             <div class="mb-3">
                 <label for="produk" class="form-label">Pilih Produk</label>
                 <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         <select class="form-select" id="produk">
                             <option value="" disabled selected>Pilih Produk</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="number" id="jumlahProduk" class="form-control" placeholder="Jumlah" min="1">
                     </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-secondary w-100" onclick="tambahKeKeranjang()">Tambah</button>
+                    </div>
                 </div>
-                <button type="button" class="btn btn-secondary mt-2" onclick="tambahKeKeranjang()">Tambah ke Keranjang</button>
             </div>
             <h5>Keranjang</h5>
-            <ul class="list-group mb-3" id="keranjangList"></ul>
+            <table class="table table-bordered mb-3">
+                <thead>
+                    <tr>
+                        <th>Produk</th>
+                        <th>Jumlah</th>
+                        <th>Potongan</th>
+                        <th>Total</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="keranjangList"></tbody>
+            </table>
             <div class="mb-3">
                 <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
                 <select class="form-select" id="metodePembayaran" required>
@@ -108,8 +121,8 @@
             const pelangganSelect = document.getElementById('pelanggan');
             pelangganList.forEach((pelanggan) => {
                 const option = document.createElement('option');
-                option.value = pelanggan.nama;
-                option.textContent = pelanggan.nama;
+                option.value = pelanggan.id;
+                option.textContent = `${pelanggan.nama} (ID: ${pelanggan.id})`;
                 pelangganSelect.appendChild(option);
             });
         }
@@ -120,7 +133,7 @@
             produkList.forEach((produk) => {
                 const option = document.createElement('option');
                 option.value = produk.nama;
-                option.textContent = produk.nama + " (Rp " + produk.harga + ")";
+                option.textContent = `${produk.nama} - Rp ${produk.harga}`;
                 produkSelect.appendChild(option);
             });
         }
@@ -134,7 +147,7 @@
             }
 
             const produk = produkSelect.value;
-            keranjang.push({ produk, jumlah });
+            keranjang.push({ produk, jumlah, harga: 10000, potongan: 1000 });
             renderKeranjang();
         }
 
@@ -142,34 +155,21 @@
             const keranjangList = document.getElementById('keranjangList');
             keranjangList.innerHTML = '';
             keranjang.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.textContent = `${item.produk} x ${item.jumlah}`;
-                keranjangList.appendChild(li);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.produk}</td>
+                    <td>${item.jumlah}</td>
+                    <td>Rp ${item.potongan * item.jumlah}</td>
+                    <td>Rp ${(item.harga - item.potongan) * item.jumlah}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="hapusDariKeranjang(${index})">Hapus</button></td>
+                `;
+                keranjangList.appendChild(row);
             });
         }
 
-        function renderTransaksi() {
-            const transaksiList = getTransaksi();
-            const transaksiTable = document.getElementById('transaksiTable');
-            transaksiTable.innerHTML = '';
-
-            transaksiList.forEach((transaksi) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${transaksi.id}</td>
-                    <td>${transaksi.pelanggan}</td>
-                    <td>${transaksi.produk.map((p) => `${p.produk} x ${p.jumlah}`).join(', ')}</td>
-                    <td>${transaksi.metode}</td>
-                    <td>Rp ${transaksi.total}</td>
-                    <td>${transaksi.status}</td>
-                    <td>
-                        <button class="btn btn-success btn-sm" onclick="konfirmasiPembayaran(${transaksi.id})">Konfirmasi</button>
-                        <button class="btn btn-danger btn-sm" onclick="hapusTransaksi(${transaksi.id})">Hapus</button>
-                    </td>
-                `;
-                transaksiTable.appendChild(row);
-            });
+        function hapusDariKeranjang(index) {
+            keranjang.splice(index, 1);
+            renderKeranjang();
         }
 
         function prosesTransaksi(e) {
@@ -178,8 +178,17 @@
             const pelanggan = document.getElementById('pelanggan').value;
             const metode = document.getElementById('metodePembayaran').value;
             const bayar = parseFloat(document.getElementById('bayar').value);
-            const total = keranjang.reduce((sum, item) => sum + (item.jumlah * 10000), 0);
-            const status = metode === 'Cash' && bayar >= total ? 'Lunas' : 'Belum Lunas';
+            const total = keranjang.reduce((sum, item) => sum + (item.jumlah * (item.harga - item.potongan)), 0);
+            const status =
+                metode === 'Cash' && bayar >= total
+                    ? 'Lunas'
+                    : metode === 'Cash'
+                    ? 'Belum Lunas'
+                    : 'Menunggu Konfirmasi';
+
+            if (metode !== 'Cash' || (metode === 'Cash' && bayar < total)) {
+                alert('Transaksi dipindahkan ke halaman pembayaran untuk konfirmasi.');
+            }
 
             const transaksiList = getTransaksi();
             transaksiList.push({
@@ -199,10 +208,34 @@
             alert('Transaksi berhasil diproses!');
         }
 
+        function renderTransaksi() {
+            const transaksiList = getTransaksi();
+            const transaksiTable = document.getElementById('transaksiTable');
+            transaksiTable.innerHTML = '';
+
+            transaksiList.forEach((transaksi) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${transaksi.id}</td>
+                    <td>${transaksi.pelanggan}</td>
+                    <td>${transaksi.produk.map((p) => `${p.produk} x ${p.jumlah}`).join(', ')}</td>
+                    <td>${transaksi.metode}</td>
+                    <td>Rp ${transaksi.total}</td>
+                    <td>${transaksi.status}</td>
+                    <td>
+                        ${transaksi.status === 'Menunggu Konfirmasi' ? `<button class="btn btn-success btn-sm" onclick="konfirmasiPembayaran(${transaksi.id})">Konfirmasi</button>` : ''}
+                        <button class="btn btn-danger btn-sm" onclick="hapusTransaksi(${transaksi.id})">Hapus</button>
+                    </td>
+                `;
+                transaksiTable.appendChild(row);
+            });
+        }
+
         document.getElementById('transaksiForm').addEventListener('submit', prosesTransaksi);
         document.addEventListener('DOMContentLoaded', () => {
             renderPelanggan();
             renderProduk();
+            renderKeranjang();
             renderTransaksi();
         });
     </script>
