@@ -211,9 +211,7 @@
                     <td>Rp ${item.harga}</td>
                     <td>${item.jumlah}</td>
                     <td>Rp ${item.subtotal}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="hapusKeranjang(${index})">Hapus</button>
-                    </td>
+                    <td><button class="btn btn-danger btn-sm" onclick="hapusKeranjang(${index})">Hapus</button></td>
                 `;
                 keranjangTable.appendChild(row);
                 total += item.subtotal;
@@ -222,57 +220,66 @@
             document.getElementById('total').value = total;
         }
 
-        // Proses transaksi
-        document.getElementById('transaksiForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Hapus item dari keranjang
+        function hapusKeranjang(index) {
+            keranjang.splice(index, 1);
+            renderKeranjang();
+        }
+
+        // Form submit untuk transaksi
+        document.getElementById('transaksiForm').addEventListener('submit', function (event) {
+            event.preventDefault();
 
             const pelanggan = document.getElementById('pelanggan').value;
+            const total = document.getElementById('total').value;
             const metodePembayaran = document.getElementById('metodePembayaran').value;
-            const bayar = parseFloat(document.getElementById('bayar').value);
-            const total = parseFloat(document.getElementById('total').value);
-            const transaksiId = `TR-${Date.now()}`;
+            const bayar = document.getElementById('bayar').value;
+            const transaksiId = 'TRX-' + Date.now(); // ID unik transaksi
+            let status = 'Belum Lunas';
+            let buktiPembayaranUrl = null;
 
-            let status;
-            const buktiPembayaran = document.getElementById('buktiPembayaran').files[0];
-            let buktiPembayaranUrl = '';
-
-            if (buktiPembayaran) {
-                const fileType = buktiPembayaran.type;
-                
-                if (fileType === 'application/pdf') {
-                    buktiPembayaranUrl = `bukti/${transaksiId}_${buktiPembayaran.name}`;
-                    console.log(`Bukti pembayaran disimpan di: ${buktiPembayaranUrl}`);
-                } else if (fileType.startsWith('image/')) {
-                    // Konversi gambar ke PDF
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const imgData = e.target.result;
-                        const doc = new jsPDF();
-                        doc.addImage(imgData, 'JPEG', 10, 10, 180, 160);
-                        buktiPembayaranUrl = `bukti/${transaksiId}.pdf`;
-                        doc.save(buktiPembayaranUrl);
-                    };
-                    reader.readAsDataURL(buktiPembayaran);
-                }
-            }
-
+            // Cek pembayaran cash
             if (metodePembayaran === 'Cash') {
-                if (bayar < total) {
-                    const konfirmasiModal = new bootstrap.Modal(document.getElementById('konfirmasiModal'));
-                    konfirmasiModal.show();
-                    document.getElementById('konfirmasiPembayaran').addEventListener('click', () => {
-                        status = 'Belum Lunas';
-                        tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, transaksiId, buktiPembayaranUrl);
-                    });
-                } else {
+                if (parseInt(bayar) >= parseInt(total)) {
                     status = 'Lunas';
-                    tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, transaksiId, buktiPembayaranUrl);
                 }
-            } else {
-                status = 'Pending Konfirmasi';
-                tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, transaksiId, buktiPembayaranUrl);
             }
+
+            // Cek bukti pembayaran untuk transfer, QR, Ewallet
+            if (metodePembayaran !== 'Cash') {
+                const fileInput = document.getElementById('buktiPembayaran');
+                const file = fileInput.files[0];
+                if (file) {
+                    buktiPembayaranUrl = uploadBuktiPembayaran(file, transaksiId);
+                }
+            }
+
+            // Menambah transaksi
+            tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, transaksiId, buktiPembayaranUrl);
         });
+
+        // Upload bukti pembayaran
+        function uploadBuktiPembayaran(file, transaksiId) {
+            const extension = file.name.split('.').pop().toLowerCase();
+            let fileUrl = null;
+
+            if (extension === 'jpg' || extension === 'png' || extension === 'jpeg') {
+                // Convert image to PDF
+                const doc = new jsPDF();
+                doc.addImage(URL.createObjectURL(file), 'PNG', 10, 10, 180, 160);
+                fileUrl = `bukti/${transaksiId}.pdf`;
+                doc.save(fileUrl);
+            } else if (extension === 'pdf') {
+                // Direct upload if PDF
+                fileUrl = `bukti/${transaksiId}.pdf`;
+                const fileReader = new FileReader();
+                fileReader.onload = function () {
+                    localStorage.setItem(fileUrl, fileReader.result);
+                };
+                fileReader.readAsDataURL(file);
+            }
+            return fileUrl;
+        }
 
         // Menambah transaksi
         function tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, id, bukti) {
