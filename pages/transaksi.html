@@ -7,16 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <script>
-        // Periksa peran pengguna
-        const role = localStorage.getItem('userRole');
-        const allowedRoles = ['Admin', 'Kasir'];
-        if (!allowedRoles.includes(role)) {
-            alert('Anda tidak memiliki akses ke halaman ini!');
-            window.location.href = 'login.html';
-        }
-    </script>
-
     <div class="container mt-5">
         <h2 class="text-center">Transaksi</h2>
 
@@ -45,6 +35,9 @@
             </div>
             <h5>Keranjang</h5>
             <ul class="list-group mb-3" id="keranjangList"></ul>
+            <div class="mb-3">
+                <strong>Total Belanja: <span id="totalHarga">Rp 0</span></strong>
+            </div>
             <div class="mb-3">
                 <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
                 <select class="form-select" id="metodePembayaran" required>
@@ -108,7 +101,6 @@
     </div>
 
     <script>
-        // Variabel Keranjang
         let keranjang = [];
         let idCounter = 1;
 
@@ -165,17 +157,20 @@
                 return;
             }
 
-            const produk = produkSelect.value;
-            const produkData = getProduk().find((p) => p.id === produk);
+            const produkId = produkSelect.value;
+            const produkData = getProduk().find((p) => p.id === produkId);
             const total = jumlah * produkData.harga;
-            keranjang.push({ id: produk, nama: produkData.nama, jumlah, harga: produkData.harga, total });
+            keranjang.push({ id: produkId, nama: produkData.nama, jumlah, harga: produkData.harga, total });
             renderKeranjang();
         }
 
         // Render Keranjang
         function renderKeranjang() {
             const keranjangList = document.getElementById('keranjangList');
+            const totalHarga = document.getElementById('totalHarga');
             keranjangList.innerHTML = '';
+            let totalBelanja = 0;
+
             keranjang.forEach((item, index) => {
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center';
@@ -184,7 +179,10 @@
                     <button class="btn btn-danger btn-sm" onclick="hapusDariKeranjang(${index})">Hapus</button>
                 `;
                 keranjangList.appendChild(li);
+                totalBelanja += item.total;
             });
+
+            totalHarga.textContent = `Rp ${totalBelanja}`;
         }
 
         // Hapus Item dari Keranjang
@@ -193,29 +191,25 @@
             renderKeranjang();
         }
 
-        // Simpan Transaksi
+        // Proses Transaksi
         document.getElementById('transaksiForm').addEventListener('submit', (e) => {
             e.preventDefault();
 
-            // Validasi
             if (!keranjang.length) {
                 alert('Tambahkan produk ke keranjang!');
                 return;
             }
 
-            // Proses Data Transaksi
             const pelangganId = document.getElementById('pelanggan').value;
             const metode = document.getElementById('metodePembayaran').value;
             const bayar = parseFloat(document.getElementById('bayar').value);
             const total = keranjang.reduce((sum, item) => sum + item.total, 0);
-
-            // Status
             let status = 'Belum Lunas';
-            if (metode === 'Cash') {
-                status = bayar >= total ? 'Lunas' : 'Belum Lunas';
+
+            if (metode === 'Cash' && bayar >= total) {
+                status = 'Lunas';
             }
 
-            // Data Transaksi
             const transaksi = {
                 id: `TRX-${idCounter++}`,
                 pelangganId,
@@ -226,7 +220,6 @@
                 status,
             };
 
-            // Simpan dan Render Ulang
             const transaksiList = getTransaksi();
             transaksiList.push(transaksi);
             saveTransaksi(transaksiList);
@@ -237,7 +230,7 @@
             alert('Transaksi berhasil diproses!');
         });
 
-        // Render Transaksi
+        // Render Daftar Transaksi
         function renderTransaksi() {
             const transaksiList = getTransaksi();
             const transaksiTable = document.getElementById('transaksiTable');
