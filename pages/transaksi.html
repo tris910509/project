@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+                <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,10 +6,7 @@
     <title>Halaman Transaksi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        #pelangganUmumDiv {
-            display: none;
-        }
-        #pelangganMemberDiv {
+        #buktiPembayaranDiv {
             display: none;
         }
     </style>
@@ -20,40 +17,12 @@
 
         <!-- Form Transaksi -->
         <form id="transaksiForm">
-            <!-- Pilih Kategori Pelanggan -->
+            <!-- Pilih Pelanggan -->
             <div class="mb-3">
-                <label for="kategoriPelanggan" class="form-label">Kategori Pelanggan</label>
-                <select class="form-select" id="kategoriPelanggan" required>
-                    <option value="" disabled selected>Pilih Kategori</option>
-                    <option value="Umum">Umum</option>
-                    <option value="Member">Member</option>
+                <label for="pelanggan" class="form-label">Pilih Pelanggan</label>
+                <select class="form-select" id="pelanggan" required>
+                    <option value="" disabled selected>Pilih Pelanggan</option>
                 </select>
-            </div>
-
-            <!-- Data Pelanggan Umum -->
-            <div id="pelangganUmumDiv">
-                <div class="mb-3">
-                    <label for="namaUmum" class="form-label">Nama</label>
-                    <input type="text" class="form-control" id="namaUmum" placeholder="Masukkan Nama">
-                </div>
-                <div class="mb-3">
-                    <label for="noHpUmum" class="form-label">Nomor HP</label>
-                    <input type="text" class="form-control" id="noHpUmum" placeholder="Masukkan Nomor HP">
-                </div>
-                <div class="mb-3">
-                    <label for="alamatUmum" class="form-label">Alamat (Opsional)</label>
-                    <textarea class="form-control" id="alamatUmum" placeholder="Masukkan Alamat"></textarea>
-                </div>
-            </div>
-
-            <!-- Data Pelanggan Member -->
-            <div id="pelangganMemberDiv">
-                <div class="mb-3">
-                    <label for="pelangganMember" class="form-label">Pilih Pelanggan Member</label>
-                    <select class="form-select" id="pelangganMember">
-                        <option value="" disabled selected>Pilih Member</option>
-                    </select>
-                </div>
             </div>
 
             <!-- Pilih Produk -->
@@ -139,33 +108,22 @@
     </div>
 
     <script>
+        const adminPhone = '628123456789'; // Ganti dengan nomor WhatsApp admin
+        let keranjang = [];
         const pelangganList = JSON.parse(localStorage.getItem('pelanggan')) || [];
         const produkList = JSON.parse(localStorage.getItem('produk')) || [];
-        let keranjang = [];
+        const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
 
-        // Tampilkan input sesuai kategori pelanggan
-        document.getElementById('kategoriPelanggan').addEventListener('change', function () {
-            const kategori = this.value;
-            document.getElementById('pelangganUmumDiv').style.display = kategori === 'Umum' ? 'block' : 'none';
-            document.getElementById('pelangganMemberDiv').style.display = kategori === 'Member' ? 'block' : 'none';
-
-            if (kategori === 'Member') {
-                renderMemberOptions();
-            }
-        });
-
-        function renderMemberOptions() {
-            const pelangganMember = document.getElementById('pelangganMember');
-            pelangganMember.innerHTML = '<option value="" disabled selected>Pilih Member</option>';
-            pelangganList.forEach(member => {
+        function renderPelanggan() {
+            const pelangganSelect = document.getElementById('pelanggan');
+            pelangganList.forEach(pelanggan => {
                 const option = document.createElement('option');
-                option.value = JSON.stringify(member);
-                option.textContent = `${member.nama} (ID: ${member.id})`;
-                pelangganMember.appendChild(option);
+                option.value = JSON.stringify(pelanggan);
+                option.textContent = `${pelanggan.nama} (${pelanggan.kategori})`;
+                pelangganSelect.appendChild(option);
             });
         }
 
-        // Render produk dropdown
         function renderProduk() {
             const produkSelect = document.getElementById('produk');
             produkList.forEach(produk => {
@@ -176,10 +134,194 @@
             });
         }
 
-        renderProduk();
+        document.getElementById('metodePembayaran').addEventListener('change', function () {
+            const metode = this.value;
+            const buktiDiv = document.getElementById('buktiPembayaranDiv');
+            buktiDiv.style.display = metode === 'Cash' ? 'none' : 'block';
+        });
 
-        // Tambahkan kode transaksi, keranjang, dan pembayaran di sini sesuai implementasi sebelumnya...
+        document.getElementById('tambahKeranjang').addEventListener('click', () => {
+            const produk = JSON.parse(document.getElementById('produk').value);
+            const jumlah = parseInt(document.getElementById('jumlah').value);
+
+            if (jumlah > 0) {
+                keranjang.push({
+                    nama: produk.nama,
+                    harga: produk.harga,
+                    jumlah,
+                    subtotal: produk.harga * jumlah
+                });
+                renderKeranjang();
+            } else {
+                alert('Jumlah harus lebih dari 0');
+            }
+        });
+
+        function renderKeranjang() {
+            const keranjangTable = document.querySelector('#keranjangTable tbody');
+            keranjangTable.innerHTML = '';
+            let total = 0;
+
+            keranjang.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.nama}</td>
+                    <td>Rp ${item.harga}</td>
+                    <td>${item.jumlah}</td>
+                    <td>Rp ${item.subtotal}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="hapusKeranjang(${index})">Hapus</button></td>
+                `;
+                keranjangTable.appendChild(row);
+                total += item.subtotal;
+            });
+
+            document.getElementById('total').value = total;
+        }
+
+        function hapusKeranjang(index) {
+            keranjang.splice(index, 1);
+            renderKeranjang();
+        }
+
+        document.getElementById('transaksiForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const pelanggan = JSON.parse(document.getElementById('pelanggan').value);
+            const total = document.getElementById('total').value;
+            const metodePembayaran = document.getElementById('metodePembayaran').value;
+            const bayar = parseInt(document.getElementById('bayar').value);
+            const transaksiId = 'TRX-' + Date.now();
+            let status = 'Belum Lunas';
+
+            if (metodePembayaran === 'Cash' && bayar >= total) {
+                status = 'Lunas';
+            } else if (metodePembayaran !== 'Cash') {
+                status = 'Proses';
+            }
+
+            let buktiPembayaran = null;
+            if (metodePembayaran !== 'Cash') {
+                const fileInput = document.getElementById('buktiPembayaran');
+                const file = fileInput.files[0];
+                if (file) {
+                    const fileName = `${transaksiId}.${file.name.split('.').pop()}`;
+                    buktiPembayaran = fileName;
+                }
+            }
+
+            transaksiList.push({
+                id: transaksiId,
+                pelanggan: pelanggan.nama,
+                total: total,
+                metodePembayaran: metodePembayaran,
+                bayar: bayar,
+                status: status,
+                buktiPembayaran: buktiPembayaran,
+                keranjang: [...keranjang],
+            });
+
+            // Simpan bukti pembayaran di localStorage
+            if (buktiPembayaran) {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    const base64Data = reader.result;
+                    const existingFiles = JSON.parse(localStorage.getItem('buktiPembayaran')) || {};
+                    existingFiles[buktiPembayaran] = base64Data;
+                    localStorage.setItem('buktiPembayaran', JSON.stringify(existingFiles));
+                };
+                reader.readAsDataURL(file);
+            }
+
+            localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+
+            // Reset form
+            this.reset();
+            keranjang = [];
+            renderKeranjang();
+            renderTransaksi();
+
+            alert('Transaksi berhasil diproses!');
+        });
+
+        function renderTransaksi() {
+            const transaksiTable = document.querySelector('#transaksiTable tbody');
+            transaksiTable.innerHTML = '';
+
+            transaksiList.forEach((transaksi, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${transaksi.id}</td>
+                    <td>${transaksi.pelanggan}</td>
+                    <td>Rp ${transaksi.total}</td>
+                    <td>${transaksi.metodePembayaran}</td>
+                    <td>${transaksi.status}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="lihatDetail('${transaksi.id}')">Detail</button>
+                        <button class="btn btn-success btn-sm" onclick="kirimWhatsApp('${transaksi.id}')">WhatsApp</button>
+                    </td>
+                `;
+                transaksiTable.appendChild(row);
+            });
+        }
+
+        function lihatDetail(idTransaksi) {
+            const transaksi = transaksiList.find(t => t.id === idTransaksi);
+            if (!transaksi) return alert('Transaksi tidak ditemukan.');
+
+            let detail = `
+                ID Transaksi: ${transaksi.id}\n
+                Pelanggan: ${transaksi.pelanggan}\n
+                Total: Rp ${transaksi.total}\n
+                Metode Pembayaran: ${transaksi.metodePembayaran}\n
+                Status: ${transaksi.status}\n
+                Produk:\n
+            `;
+
+            transaksi.keranjang.forEach((item, index) => {
+                detail += `${index + 1}. ${item.nama} - ${item.jumlah} x Rp ${item.harga} = Rp ${item.subtotal}\n`;
+            });
+
+            if (transaksi.buktiPembayaran) {
+                detail += `Bukti Pembayaran: ${transaksi.buktiPembayaran}\n`;
+            }
+
+            alert(detail);
+        }
+
+        function kirimWhatsApp(idTransaksi) {
+            const transaksi = transaksiList.find(t => t.id === idTransaksi);
+            if (!transaksi) return alert('Transaksi tidak ditemukan.');
+
+            const pelanggan = pelangganList.find(p => p.nama === transaksi.pelanggan);
+            if (!pelanggan || !pelanggan.noHp) {
+                return alert('Nomor WhatsApp pelanggan tidak ditemukan.');
+            }
+
+            const produkList = transaksi.keranjang
+                .map(item => `${item.nama} - ${item.jumlah} x Rp ${item.harga} = Rp ${item.subtotal}`)
+                .join('\n');
+
+            const pesan = `
+                Halo ${transaksi.pelanggan},\n
+                Berikut detail transaksi Anda:\n
+                ID Transaksi: ${transaksi.id}\n
+                Total: Rp ${transaksi.total}\n
+                Metode Pembayaran: ${transaksi.metodePembayaran}\n
+                Status: ${transaksi.status}\n
+                Produk:\n
+                ${produkList}\n
+                Terima kasih telah berbelanja!
+            `;
+
+            const url = `https://wa.me/${pelanggan.noHp}?text=${encodeURIComponent(pesan)}`;
+            window.open(url, '_blank');
+        }
+
+        renderPelanggan();
+        renderProduk();
+        renderTransaksi();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
