@@ -23,55 +23,28 @@
         <!-- Form Transaksi -->
         <h4>Tambah Transaksi</h4>
         <form id="transaksiForm" class="mb-4">
-            <!-- Pilih Pelanggan -->
             <div class="mb-3">
                 <label for="pelanggan" class="form-label">Pilih Pelanggan</label>
                 <select class="form-select" id="pelanggan" required>
                     <option value="" disabled selected>Pilih Pelanggan</option>
                 </select>
             </div>
-
-            <!-- Pilih Produk -->
             <div class="mb-3">
                 <label for="produk" class="form-label">Pilih Produk</label>
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-8">
                         <select class="form-select" id="produk">
                             <option value="" disabled selected>Pilih Produk</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <input type="number" id="jumlahProduk" class="form-control" placeholder="Jumlah" min="1">
                     </div>
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-secondary w-100" onclick="tambahKeKeranjang()">Tambah</button>
-                    </div>
                 </div>
+                <button type="button" class="btn btn-secondary mt-2" onclick="tambahKeKeranjang()">Tambah ke Keranjang</button>
             </div>
-
-            <!-- Keranjang -->
-            <h5>Keranjang Belanja</h5>
-            <table class="table table-bordered mb-3">
-                <thead>
-                    <tr>
-                        <th>Produk</th>
-                        <th>Jumlah</th>
-                        <th>Harga</th>
-                        <th>Potongan</th>
-                        <th>Subtotal</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="keranjangList"></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="4" class="text-end"><strong>Total</strong></td>
-                        <td colspan="2" id="totalHarga">Rp 0</td>
-                    </tr>
-                </tfoot>
-            </table>
-
-            <!-- Metode Pembayaran -->
+            <h5>Keranjang</h5>
+            <ul class="list-group mb-3" id="keranjangList"></ul>
             <div class="mb-3">
                 <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
                 <select class="form-select" id="metodePembayaran" required>
@@ -82,34 +55,52 @@
                     <option value="EWallet">E-Wallet</option>
                 </select>
             </div>
-
-            <!-- Bukti Pembayaran -->
             <div class="mb-3" id="buktiPembayaranContainer" style="display: none;">
                 <label for="buktiPembayaran" class="form-label">Unggah Bukti Pembayaran</label>
                 <input type="file" class="form-control" id="buktiPembayaran">
             </div>
-
-            <!-- Jumlah Dibayar -->
             <div class="mb-3">
                 <label for="bayar" class="form-label">Jumlah Dibayar</label>
                 <input type="number" class="form-control" id="bayar" placeholder="Masukkan Jumlah Dibayar" required>
             </div>
-
             <button type="submit" class="btn btn-primary">Proses Transaksi</button>
         </form>
 
         <!-- Daftar Transaksi -->
         <h4>Daftar Transaksi</h4>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" id="filterPelanggan" class="form-control" placeholder="Filter ID Pelanggan">
+            </div>
+            <div class="col-md-4">
+                <select id="filterMetode" class="form-select">
+                    <option value="">Filter Metode Pembayaran</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Transfer">Transfer</option>
+                    <option value="QR">QR</option>
+                    <option value="EWallet">E-Wallet</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select id="filterStatus" class="form-select">
+                    <option value="">Filter Status Pembayaran</option>
+                    <option value="Lunas">Lunas</option>
+                    <option value="Belum Lunas">Belum Lunas</option>
+                    <option value="Proses">Proses</option>
+                    <option value="Pending">Pending</option>
+                </select>
+            </div>
+        </div>
         <table class="table table-striped">
             <thead>
                 <tr>
                     <th>ID Transaksi</th>
-                    <th>Pelanggan</th>
+                    <th>ID Pelanggan</th>
                     <th>Produk</th>
                     <th>Metode</th>
                     <th>Total</th>
                     <th>Status</th>
-                    <th>Aksi</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody id="transaksiTable"></tbody>
@@ -117,223 +108,163 @@
     </div>
 
     <script>
+        // Variabel Keranjang
         let keranjang = [];
-let transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
-let pelangganList = JSON.parse(localStorage.getItem('pelanggan')) || [];
-let produkList = JSON.parse(localStorage.getItem('produk')) || [];
-let idCounter = transaksiList.length + 1;
+        let idCounter = 1;
 
-// Fungsi untuk mengisi data pelanggan ke dropdown
-function renderPelanggan() {
-    const pelangganSelect = document.getElementById('pelanggan');
-    pelangganList.forEach((pelanggan) => {
-        const option = document.createElement('option');
-        option.value = pelanggan.id;
-        option.textContent = `${pelanggan.nama} (ID: ${pelanggan.id})`;
-        pelangganSelect.appendChild(option);
-    });
-}
+        // Ambil Data Pelanggan
+        function getPelanggan() {
+            return JSON.parse(localStorage.getItem('pelanggan')) || [];
+        }
 
-// Fungsi untuk mengisi data produk ke dropdown
-function renderProduk() {
-    const produkSelect = document.getElementById('produk');
-    produkList.forEach((produk) => {
-        const option = document.createElement('option');
-        option.value = produk.id;
-        option.textContent = `${produk.nama} - Rp ${produk.harga}`;
-        produkSelect.appendChild(option);
-    });
-}
+        // Ambil Data Produk
+        function getProduk() {
+            return JSON.parse(localStorage.getItem('produk')) || [];
+        }
 
-// Tambahkan produk ke keranjang
-function tambahKeKeranjang() {
-    const produkId = document.getElementById('produk').value;
-    const jumlah = parseInt(document.getElementById('jumlahProduk').value);
+        // Ambil Data Transaksi
+        function getTransaksi() {
+            return JSON.parse(localStorage.getItem('transaksi')) || [];
+        }
 
-    if (!produkId || isNaN(jumlah) || jumlah < 1) {
-        alert('Pilih produk dan masukkan jumlah yang valid!');
-        return;
-    }
+        // Simpan Transaksi
+        function saveTransaksi(data) {
+            localStorage.setItem('transaksi', JSON.stringify(data));
+        }
 
-    const produk = produkList.find((p) => p.id === produkId);
-    const existingItem = keranjang.find((item) => item.id === produkId);
+        // Render Pelanggan
+        function renderPelanggan() {
+            const pelangganList = getPelanggan();
+            const pelangganSelect = document.getElementById('pelanggan');
+            pelangganList.forEach((pelanggan) => {
+                const option = document.createElement('option');
+                option.value = pelanggan.id;
+                option.textContent = `${pelanggan.id} - ${pelanggan.nama}`;
+                pelangganSelect.appendChild(option);
+            });
+        }
 
-    if (existingItem) {
-        existingItem.jumlah += jumlah;
-    } else {
-        keranjang.push({
-            id: produk.id,
-            nama: produk.nama,
-            harga: produk.harga,
-            potongan: produk.potongan || 0,
-            jumlah,
+        // Render Produk
+        function renderProduk() {
+            const produkList = getProduk();
+            const produkSelect = document.getElementById('produk');
+            produkList.forEach((produk) => {
+                const option = document.createElement('option');
+                option.value = produk.id;
+                option.textContent = `${produk.nama} (Rp ${produk.harga})`;
+                produkSelect.appendChild(option);
+            });
+        }
+
+        // Tambah ke Keranjang
+        function tambahKeKeranjang() {
+            const produkSelect = document.getElementById('produk');
+            const jumlah = parseInt(document.getElementById('jumlahProduk').value);
+            if (!produkSelect.value || isNaN(jumlah) || jumlah < 1) {
+                alert('Pilih produk dan masukkan jumlah yang valid!');
+                return;
+            }
+
+            const produk = produkSelect.value;
+            const produkData = getProduk().find((p) => p.id === produk);
+            const total = jumlah * produkData.harga;
+            keranjang.push({ id: produk, nama: produkData.nama, jumlah, harga: produkData.harga, total });
+            renderKeranjang();
+        }
+
+        // Render Keranjang
+        function renderKeranjang() {
+            const keranjangList = document.getElementById('keranjangList');
+            keranjangList.innerHTML = '';
+            keranjang.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                    ${item.nama} x ${item.jumlah} - Rp ${item.total}
+                    <button class="btn btn-danger btn-sm" onclick="hapusDariKeranjang(${index})">Hapus</button>
+                `;
+                keranjangList.appendChild(li);
+            });
+        }
+
+        // Hapus Item dari Keranjang
+        function hapusDariKeranjang(index) {
+            keranjang.splice(index, 1);
+            renderKeranjang();
+        }
+
+        // Simpan Transaksi
+        document.getElementById('transaksiForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // Validasi
+            if (!keranjang.length) {
+                alert('Tambahkan produk ke keranjang!');
+                return;
+            }
+
+            // Proses Data Transaksi
+            const pelangganId = document.getElementById('pelanggan').value;
+            const metode = document.getElementById('metodePembayaran').value;
+            const bayar = parseFloat(document.getElementById('bayar').value);
+            const total = keranjang.reduce((sum, item) => sum + item.total, 0);
+
+            // Status
+            let status = 'Belum Lunas';
+            if (metode === 'Cash') {
+                status = bayar >= total ? 'Lunas' : 'Belum Lunas';
+            }
+
+            // Data Transaksi
+            const transaksi = {
+                id: `TRX-${idCounter++}`,
+                pelangganId,
+                produk: [...keranjang],
+                metode,
+                total,
+                bayar,
+                status,
+            };
+
+            // Simpan dan Render Ulang
+            const transaksiList = getTransaksi();
+            transaksiList.push(transaksi);
+            saveTransaksi(transaksiList);
+            keranjang = [];
+            renderKeranjang();
+            renderTransaksi();
+
+            alert('Transaksi berhasil diproses!');
         });
-    }
 
-    renderKeranjang();
-}
+        // Render Transaksi
+        function renderTransaksi() {
+            const transaksiList = getTransaksi();
+            const transaksiTable = document.getElementById('transaksiTable');
+            transaksiTable.innerHTML = '';
 
-// Render keranjang belanja
-function renderKeranjang() {
-    const keranjangList = document.getElementById('keranjangList');
-    keranjangList.innerHTML = '';
-    let totalHarga = 0;
+            transaksiList.forEach((transaksi) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${transaksi.id}</td>
+                    <td>${transaksi.pelangganId}</td>
+                    <td>${transaksi.produk.map((p) => `${p.nama} x ${p.jumlah}`).join(', ')}</td>
+                    <td>${transaksi.metode}</td>
+                    <td>Rp ${transaksi.total}</td>
+                    <td>${transaksi.status}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="lihatDetail(${transaksi.id})">Detail</button>
+                    </td>
+                `;
+                transaksiTable.appendChild(row);
+            });
+        }
 
-    keranjang.forEach((item, index) => {
-        const subtotal = (item.harga - item.potongan) * item.jumlah;
-        totalHarga += subtotal;
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${item.nama}</td>
-            <td>${item.jumlah}</td>
-            <td>Rp ${item.harga}</td>
-            <td>Rp ${item.potongan}</td>
-            <td>Rp ${subtotal}</td>
-            <td>
-                <button class="btn btn-danger btn-sm" onclick="hapusDariKeranjang(${index})">Hapus</button>
-            </td>
-        `;
-        keranjangList.appendChild(row);
-    });
-
-    document.getElementById('totalHarga').textContent = `Rp ${totalHarga}`;
-}
-
-// Hapus item dari keranjang
-function hapusDariKeranjang(index) {
-    keranjang.splice(index, 1);
-    renderKeranjang();
-}
-
-// Proses transaksi
-function prosesTransaksi(e) {
-    e.preventDefault();
-
-    if (keranjang.length === 0) {
-        alert('Keranjang belanja kosong!');
-        return;
-    }
-
-    const pelangganId = document.getElementById('pelanggan').value;
-    const metode = document.getElementById('metodePembayaran').value;
-    const bayar = parseFloat(document.getElementById('bayar').value);
-    const totalHarga = keranjang.reduce((sum, item) => sum + (item.harga - item.potongan) * item.jumlah, 0);
-
-    if (!pelangganId || !metode || isNaN(bayar)) {
-        alert('Isi semua data transaksi dengan benar!');
-        return;
-    }
-
-    const statusPembayaran =
-        metode === 'Cash' && bayar >= totalHarga
-            ? 'Lunas'
-            : metode === 'Cash'
-            ? 'Belum Lunas'
-            : 'Menunggu Konfirmasi';
-
-    const buktiPembayaran =
-        metode !== 'Cash' && document.getElementById('buktiPembayaran').files.length > 0
-            ? URL.createObjectURL(document.getElementById('buktiPembayaran').files[0])
-            : null;
-
-    if (metode !== 'Cash' && !buktiPembayaran) {
-        alert('Unggah bukti pembayaran untuk metode non-cash!');
-        return;
-    }
-
-    const transaksiBaru = {
-        id: `TRX-${new Date().toISOString().slice(0, 10)}-${idCounter++}`,
-        pelanggan: pelangganId,
-        produk: [...keranjang],
-        metode,
-        totalHarga,
-        bayar,
-        buktiPembayaran,
-        statusPembayaran,
-    };
-
-    transaksiList.push(transaksiBaru);
-    localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-
-    keranjang = [];
-    renderKeranjang();
-    renderTransaksi();
-    alert('Transaksi berhasil diproses!');
-}
-
-// Render transaksi
-function renderTransaksi() {
-    const transaksiTable = document.getElementById('transaksiTable');
-    transaksiTable.innerHTML = '';
-
-    transaksiList.forEach((transaksi) => {
-        const produkList = transaksi.produk.map((p) => `${p.nama} x${p.jumlah}`).join(', ');
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${transaksi.id}</td>
-            <td>${pelangganList.find((p) => p.id === transaksi.pelanggan)?.nama || 'Umum'}</td>
-            <td>${produkList}</td>
-            <td>${transaksi.metode}</td>
-            <td>Rp ${transaksi.totalHarga}</td>
-            <td>${transaksi.statusPembayaran}</td>
-            <td>
-                ${
-                    transaksi.statusPembayaran === 'Menunggu Konfirmasi'
-                        ? `<button class="btn btn-success btn-sm" onclick="konfirmasiPembayaran('${transaksi.id}')">Konfirmasi</button>`
-                        : ''
-                }
-                <button class="btn btn-info btn-sm" onclick="lihatDetail('${transaksi.id}')">Detail</button>
-            </td>
-        `;
-        transaksiTable.appendChild(row);
-    });
-}
-
-// Konfirmasi pembayaran
-function konfirmasiPembayaran(transaksiId) {
-    const transaksi = transaksiList.find((t) => t.id === transaksiId);
-
-    if (transaksi && transaksi.buktiPembayaran) {
-        transaksi.statusPembayaran = 'Lunas';
-        localStorage.setItem('transaksi', JSON.stringify(transaksiList));
-        renderTransaksi();
-        alert('Pembayaran berhasil dikonfirmasi!');
-    } else {
-        alert('Tidak ada bukti pembayaran untuk transaksi ini!');
-    }
-}
-
-// Lihat detail transaksi
-function lihatDetail(transaksiId) {
-    const transaksi = transaksiList.find((t) => t.id === transaksiId);
-    if (!transaksi) return;
-
-    let detail = `
-        ID Transaksi: ${transaksi.id}
-        Pelanggan: ${pelangganList.find((p) => p.id === transaksi.pelanggan)?.nama || 'Umum'}
-        Produk: ${transaksi.produk.map((p) => `${p.nama} x${p.jumlah}`).join(', ')}
-        Metode: ${transaksi.metode}
-        Total: Rp ${transaksi.totalHarga}
-        Status: ${transaksi.statusPembayaran}
-    `;
-
-    if (transaksi.buktiPembayaran) {
-        detail += `\nBukti Pembayaran: ${transaksi.buktiPembayaran}`;
-    }
-
-    alert(detail);
-}
-
-// Inisialisasi data awal
-document.addEventListener('DOMContentLoaded', () => {
-    renderPelanggan();
-    renderProduk();
-    renderKeranjang();
-    renderTransaksi();
-});
-
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPelanggan();
+            renderProduk();
+            renderTransaksi();
+        });
     </script>
 </body>
 </html>
