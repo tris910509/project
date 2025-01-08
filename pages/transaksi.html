@@ -20,7 +20,6 @@
 
         <!-- Form Transaksi -->
         <form id="transaksiForm">
-            <!-- Pilih Pelanggan -->
             <div class="mb-3">
                 <label for="pelanggan" class="form-label">Pilih Pelanggan</label>
                 <select class="form-select" id="pelanggan" required>
@@ -28,7 +27,6 @@
                 </select>
             </div>
 
-            <!-- Pilih Produk -->
             <div class="mb-3">
                 <label for="produk" class="form-label">Pilih Produk</label>
                 <select class="form-select" id="produk" required>
@@ -36,13 +34,11 @@
                 </select>
             </div>
 
-            <!-- Jumlah Produk -->
             <div class="mb-3">
                 <label for="jumlah" class="form-label">Jumlah</label>
                 <input type="number" class="form-control" id="jumlah" placeholder="Masukkan jumlah produk" required>
             </div>
 
-            <!-- Keranjang -->
             <button type="button" class="btn btn-secondary mb-3" id="tambahKeranjang">Tambah ke Keranjang</button>
 
             <h4>Keranjang</h4>
@@ -60,13 +56,11 @@
                 <tbody></tbody>
             </table>
 
-            <!-- Total -->
             <div class="mb-3">
                 <label for="total" class="form-label">Total</label>
                 <input type="number" class="form-control" id="total" readonly>
             </div>
 
-            <!-- Metode Pembayaran -->
             <div class="mb-3">
                 <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
                 <select class="form-select" id="metodePembayaran" required>
@@ -77,13 +71,11 @@
                 </select>
             </div>
 
-            <!-- Jumlah Dibayar -->
             <div class="mb-3">
                 <label for="bayar" class="form-label">Jumlah Dibayar</label>
                 <input type="number" class="form-control" id="bayar" placeholder="Masukkan Jumlah Dibayar" required>
             </div>
 
-            <!-- Bukti Pembayaran -->
             <div class="mb-3" id="buktiPembayaranDiv">
                 <label for="buktiPembayaran" class="form-label">Upload Bukti Pembayaran</label>
                 <input type="file" class="form-control" id="buktiPembayaran" accept=".jpg,.jpeg,.png,.pdf">
@@ -111,7 +103,7 @@
     </div>
 
     <script>
-        const adminPhone = '628123456789'; // Ganti dengan nomor WhatsApp admin
+        const adminPhone = '628123456789';
         let keranjang = [];
         const pelangganList = JSON.parse(localStorage.getItem('pelanggan')) || [];
         const produkList = JSON.parse(localStorage.getItem('produk')) || [];
@@ -139,73 +131,39 @@
             });
         }
 
-        document.getElementById('metodePembayaran').addEventListener('change', function () {
-            const metode = this.value;
-            const buktiDiv = document.getElementById('buktiPembayaranDiv');
-            buktiDiv.style.display = metode === 'Cash' ? 'none' : 'block';
-        });
-
-        document.getElementById('tambahKeranjang').addEventListener('click', () => {
-            const produk = JSON.parse(document.getElementById('produk').value);
-            const jumlah = parseInt(document.getElementById('jumlah').value);
-
-            if (!produk || jumlah <= 0) {
-                showAlert('warning', 'Produk dan jumlah harus diisi dengan benar!');
-                return;
-            }
-
-            keranjang.push({
-                nama: produk.nama,
-                harga: produk.harga,
-                jumlah,
-                subtotal: produk.harga * jumlah
-            });
-            renderKeranjang();
-        });
-
-        function renderKeranjang() {
-            const keranjangTable = document.querySelector('#keranjangTable tbody');
-            keranjangTable.innerHTML = '';
-            let total = 0;
-
-            keranjang.forEach((item, index) => {
+        function renderTransaksi() {
+            const transaksiTable = document.querySelector('#transaksiTable tbody');
+            transaksiTable.innerHTML = '';
+            transaksiList.forEach((transaksi, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${item.nama}</td>
-                    <td>Rp ${item.harga}</td>
-                    <td>${item.jumlah}</td>
-                    <td>Rp ${item.subtotal}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="hapusKeranjang(${index})">Hapus</button></td>
+                    <td>${transaksi.idTransaksi}</td>
+                    <td>${transaksi.pelanggan.nama}</td>
+                    <td>Rp ${transaksi.total}</td>
+                    <td>${transaksi.metode}</td>
+                    <td>${transaksi.status}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="lihatDetail(${index})">Detail</button>
+                    </td>
                 `;
-                keranjangTable.appendChild(row);
-                total += item.subtotal;
+                transaksiTable.appendChild(row);
             });
-
-            document.getElementById('total').value = total;
         }
 
-        function hapusKeranjang(index) {
-            keranjang.splice(index, 1);
-            renderKeranjang();
-        }
-
-        function showAlert(type, message) {
-            const alertContainer = document.getElementById('alertContainer');
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type} alert-dismissible fade show`;
-            alert.role = 'alert';
-            alert.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            alertContainer.appendChild(alert);
-            setTimeout(() => alert.remove(), 5000);
+        function lihatDetail(index) {
+            const transaksi = transaksiList[index];
+            alert(`Detail Transaksi:\n
+                ID: ${transaksi.idTransaksi}\n
+                Pelanggan: ${transaksi.pelanggan.nama}\n
+                Total: Rp ${transaksi.total}\n
+                Metode: ${transaksi.metode}\n
+                Status: ${transaksi.status}`);
         }
 
         renderPelanggan();
         renderProduk();
-        renderKeranjang();
+        renderTransaksi();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
