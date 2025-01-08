@@ -235,29 +235,27 @@
                 fileUrl = `bukti/${transaksiId}.pdf`;
                 doc.save(fileUrl);
             } else if (extension === 'pdf') {
-                // Direct upload if PDF
+                // If file is already PDF, just save it
                 fileUrl = `bukti/${transaksiId}.pdf`;
-                const fileReader = new FileReader();
-                fileReader.onload = function () {
-                    localStorage.setItem(fileUrl, fileReader.result);
-                };
-                fileReader.readAsDataURL(file);
+                const formData = new FormData();
+                formData.append('file', file);
+                // Here, we would normally send the file to the server, but for local storage, we just simulate it
+                localStorage.setItem(fileUrl, URL.createObjectURL(file));
             }
             return fileUrl;
         }
 
-        // Menambah transaksi
-        function tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, id, bukti) {
+        // Tambah transaksi ke list
+        function tambahTransaksi(pelanggan, total, metodePembayaran, bayar, status, transaksiId, buktiPembayaranUrl) {
             const transaksi = {
-                id,
+                id: transaksiId,
                 pelanggan,
                 total,
                 metodePembayaran,
                 bayar,
                 status,
-                buktiPembayaran: bukti || null
+                buktiPembayaran: buktiPembayaranUrl
             };
-
             transaksiList.push(transaksi);
             localStorage.setItem('transaksi', JSON.stringify(transaksiList));
             renderTransaksi();
@@ -268,7 +266,7 @@
             const transaksiTable = document.querySelector('#transaksiTable tbody');
             transaksiTable.innerHTML = '';
 
-            transaksiList.forEach((transaksi, index) => {
+            transaksiList.forEach(transaksi => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${transaksi.id}</td>
@@ -276,21 +274,16 @@
                     <td>Rp ${transaksi.total}</td>
                     <td>${transaksi.metodePembayaran}</td>
                     <td>${transaksi.status}</td>
-                    <td>
-                        <button class="btn btn-info btn-sm" onclick="lihatStruk('${transaksi.id}')">Lihat Struk</button>
-                    </td>
+                    <td><button class="btn btn-info btn-sm" onclick="lihatStruk('${transaksi.id}')">Lihat Struk</button></td>
                 `;
                 transaksiTable.appendChild(row);
             });
         }
 
         // Lihat struk transaksi
-        function lihatStruk(id) {
-            const transaksi = transaksiList.find(t => t.id === id);
-            let buktiPembayaranHtml = '';
-            if (transaksi.buktiPembayaran) {
-                buktiPembayaranHtml = `<p><strong>Bukti Pembayaran:</strong> <a href="${transaksi.buktiPembayaran}" target="_blank">Lihat Bukti Pembayaran</a></p>`;
-            }
+        function lihatStruk(transaksiId) {
+            const transaksi = transaksiList.find(t => t.id === transaksiId);
+            const buktiPembayaranHtml = transaksi.buktiPembayaran ? `<p><strong>Bukti Pembayaran:</strong> <a href="${transaksi.buktiPembayaran}" target="_blank">Lihat Bukti</a></p>` : '';
             const strukContent = document.getElementById('strukContent');
             strukContent.innerHTML = `
                 <p><strong>ID Transaksi:</strong> ${transaksi.id}</p>
