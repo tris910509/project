@@ -253,13 +253,21 @@
                     <td>Rp ${transaksi.total}</td>
                     <td>${transaksi.status}</td>
                     <td>
-                        <button class="btn btn-primary btn-sm" onclick="lihatDetail(${transaksi.id})">Detail</button>
+                        <button class="btn btn-primary btn-sm" onclick="lihatDetail('${transaksi.id}')">Detail</button>
                     </td>
                 `;
                 transaksiTable.appendChild(row);
             });
         }
 
+        // Detail Transaksi
+        function lihatDetail(id) {
+            const transaksiList = getTransaksi();
+            const transaksi = transaksiList.find((t) => t.id === id);
+            alert(`Detail Transaksi ${transaksi.id}:\nTotal: Rp ${transaksi.total}\nStatus: ${transaksi.status}`);
+        }
+
+        // Inisialisasi
         document.addEventListener('DOMContentLoaded', () => {
             renderPelanggan();
             renderProduk();
