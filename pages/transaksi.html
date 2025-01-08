@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaksi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">Halaman Transaksi</h2>
+
+        <!-- Form Tambah Transaksi -->
+        <form id="transaksiForm" class="mb-4">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="pelanggan" class="form-label">Nama Pelanggan</label>
+                    <input type="text" id="pelanggan" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="produk" class="form-label">Produk</label>
+                    <input type="text" id="produk" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="jumlah" class="form-label">Jumlah</label>
+                    <input type="number" id="jumlah" class="form-control" required>
+                </div>
+                <div class="col-md-4 mt-3">
+                    <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
+                    <select id="metodePembayaran" class="form-select" required>
+                        <option value="Cash">Cash</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="QR">QR</option>
+                        <option value="Ewallet">Ewallet</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mt-3">
+                    <label for="totalHarga" class="form-label">Total Harga</label>
+                    <input type="number" id="totalHarga" class="form-control" required>
+                </div>
+                <div class="col-md-4 mt-3">
+                    <label for="bayar" class="form-label">Jumlah Bayar</label>
+                    <input type="number" id="bayar" class="form-control" required>
+                </div>
+                <!-- Input Bukti Pembayaran -->
+                <div class="col-md-4 mt-3 d-none" id="buktiPembayaranGroup">
+                    <label for="buktiPembayaran" class="form-label">Bukti Pembayaran</label>
+                    <input type="file" id="buktiPembayaran" class="form-control">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Tambah Transaksi</button>
+        </form>
+
+        <!-- Tabel Transaksi -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ID Transaksi</th>
+                    <th>Nama Pelanggan</th>
+                    <th>Produk</th>
+                    <th>Jumlah</th>
+                    <th>Total Harga</th>
+                    <th>Bayar</th>
+                    <th>Status</th>
+                    <th>Metode Pembayaran</th>
+                    <th>Bukti Pembayaran</th>
+                </tr>
+            </thead>
+            <tbody id="transaksiTable">
+                <!-- Data akan diisi melalui JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+        const transaksiForm = document.getElementById('transaksiForm');
+        const transaksiTable = document.getElementById('transaksiTable');
+        const metodePembayaran = document.getElementById('metodePembayaran');
+        const buktiPembayaranGroup = document.getElementById('buktiPembayaranGroup');
+        const buktiPembayaran = document.getElementById('buktiPembayaran');
+
+        // Tampilkan input bukti pembayaran jika metode pembayaran adalah Transfer, QR, atau Ewallet
+        metodePembayaran.addEventListener('change', () => {
+            if (['Transfer', 'QR', 'Ewallet'].includes(metodePembayaran.value)) {
+                buktiPembayaranGroup.classList.remove('d-none');
+            } else {
+                buktiPembayaranGroup.classList.add('d-none');
+            }
+        });
+
+        // Fungsi untuk menghitung status pembayaran
+        function hitungStatusPembayaran(metode, bayar, total) {
+            if (metode === 'Cash') {
+                return bayar >= total ? 'Lunas' : 'Belum Lunas';
+            }
+            return 'Menunggu Konfirmasi';
+        }
+
+        // Fungsi untuk menambahkan transaksi
+        transaksiForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const pelanggan = document.getElementById('pelanggan').value;
+            const produk = document.getElementById('produk').value;
+            const jumlah = parseInt(document.getElementById('jumlah').value, 10);
+            const totalHarga = parseFloat(document.getElementById('totalHarga').value);
+            const bayar = parseFloat(document.getElementById('bayar').value);
+            const metode = metodePembayaran.value;
+
+            let buktiPembayaranData = '';
+            if (buktiPembayaran.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    buktiPembayaranData = event.target.result;
+                    simpanTransaksi(pelanggan, produk, jumlah, totalHarga, bayar, metode, buktiPembayaranData);
+                };
+                reader.readAsDataURL(buktiPembayaran.files[0]);
+            } else {
+                simpanTransaksi(pelanggan, produk, jumlah, totalHarga, bayar, metode, buktiPembayaranData);
+            }
+        });
+
+        // Simpan transaksi ke localStorage
+        function simpanTransaksi(pelanggan, produk, jumlah, totalHarga, bayar, metode, buktiPembayaranData) {
+            const status = hitungStatusPembayaran(metode, bayar, totalHarga);
+
+            const transaksi = {
+                id: 'TRX-' + Date.now(),
+                pelanggan,
+                produk,
+                jumlah,
+                totalHarga,
+                bayar,
+                metodePembayaran: metode,
+                status,
+                buktiPembayaran: buktiPembayaranData,
+            };
+
+            transaksiList.push(transaksi);
+            localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+
+            transaksiForm.reset();
+            buktiPembayaranGroup.classList.add('d-none');
+            loadTable();
+        }
+
+        // Fungsi untuk memuat tabel transaksi
+        function loadTable() {
+            transaksiTable.innerHTML = '';
+
+            transaksiList.forEach((transaksi, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${transaksi.id}</td>
+                    <td>${transaksi.pelanggan}</td>
+                    <td>${transaksi.produk}</td>
+                    <td>${transaksi.jumlah}</td>
+                    <td>${transaksi.totalHarga}</td>
+                    <td>${transaksi.bayar}</td>
+                    <td>${transaksi.status}</td>
+                    <td>${transaksi.metodePembayaran}</td>
+                    <td>
+                        ${
+                            transaksi.buktiPembayaran
+                                ? `<a href="${transaksi.buktiPembayaran}" target="_blank">Lihat Bukti</a>`
+                                : 'Tidak Ada'
+                        }
+                    </td>
+                `;
+                transaksiTable.appendChild(row);
+            });
+        }
+
+        // Muat tabel saat halaman dimuat
+        loadTable();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
