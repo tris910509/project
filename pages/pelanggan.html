@@ -3,153 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Pelanggan dan Umum</title>
+    <title>Halaman Pelanggan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
-        <h2 class="text-center">Pelanggan dan Data Umum</h2>
+        <h2 class="text-center">Halaman Pelanggan</h2>
 
-        <!-- Tambah Pelanggan -->
-        <div class="card mb-5">
-            <div class="card-header">Tambah Pelanggan</div>
-            <div class="card-body">
-                <form id="pelangganForm">
-                    <div class="mb-3">
-                        <label for="kategoriPelanggan" class="form-label">Kategori Pelanggan</label>
-                        <select class="form-select" id="kategoriPelanggan" required>
-                            <option value="" disabled selected>Pilih Kategori</option>
-                            <option value="Umum">Umum</option>
-                            <option value="Member">Member</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="nama" class="form-label">Nama Pelanggan</label>
-                        <input type="text" class="form-control" id="nama" placeholder="Masukkan Nama" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="noHp" class="form-label">Nomor Handphone</label>
-                        <input type="tel" class="form-control" id="noHp" placeholder="Masukkan Nomor Handphone" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="alamat" class="form-label">Alamat</label>
-                        <textarea class="form-control" id="alamat" placeholder="Masukkan Alamat" rows="3" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Simpan Pelanggan</button>
-                </form>
+        <!-- Form Input Pelanggan -->
+        <form id="formPelanggan" class="mb-4">
+            <h4 id="formTitle">Tambah Pelanggan</h4>
+            <input type="hidden" id="editId" />
+            <div class="mb-3">
+                <label for="kategori" class="form-label">Kategori</label>
+                <select class="form-select" id="kategori" required>
+                    <option value="" disabled selected>Pilih Kategori</option>
+                    <option value="Umum">Umum</option>
+                    <option value="Member">Member</option>
+                </select>
             </div>
+            <div class="mb-3">
+                <label for="nama" class="form-label">Nama</label>
+                <input type="text" class="form-control" id="nama" placeholder="Masukkan Nama" required>
+            </div>
+            <div class="mb-3">
+                <label for="noHp" class="form-label">Nomor HP</label>
+                <input type="text" class="form-control" id="noHp" placeholder="Masukkan Nomor HP" required>
+            </div>
+            <div class="mb-3">
+                <label for="alamat" class="form-label">Alamat</label>
+                <textarea class="form-control" id="alamat" placeholder="Masukkan Alamat (Opsional)"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+            <button type="button" id="cancelEdit" class="btn btn-secondary" style="display: none;">Batal</button>
+        </form>
+
+        <!-- Filter Kategori -->
+        <div class="mb-4">
+            <h4>Filter Pelanggan</h4>
+            <select class="form-select" id="filterKategori">
+                <option value="Semua">Semua</option>
+                <option value="Umum">Umum</option>
+                <option value="Member">Member</option>
+            </select>
         </div>
 
-        <!-- Halaman Data Umum -->
-        <div class="card mb-5">
-            <div class="card-header">Data Umum</div>
-            <div class="card-body">
-                <h4>Daftar Pelanggan Umum</h4>
-                <table class="table table-striped" id="dataUmumTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Nama</th>
-                            <th>No Handphone</th>
-                            <th>Alamat</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Daftar Pelanggan -->
-        <div class="card">
-            <div class="card-header">Daftar Semua Pelanggan</div>
-            <div class="card-body">
-                <h4>Daftar Pelanggan</h4>
-                <table class="table table-striped" id="dataPelangganTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Kategori</th>
-                            <th>Nama</th>
-                            <th>No Handphone</th>
-                            <th>Alamat</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
+        <!-- Tabel Daftar Pelanggan -->
+        <h4>Daftar Pelanggan</h4>
+        <table class="table table-striped" id="tabelPelanggan">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>Kategori</th>
+                    <th>Nomor HP</th>
+                    <th>Alamat</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 
     <script>
-        // Inisialisasi data pelanggan
-        const pelangganList = JSON.parse(localStorage.getItem('pelanggan')) || [];
+        const pelangganKey = 'pelanggan';
+        let pelangganList = JSON.parse(localStorage.getItem(pelangganKey)) || [];
+        let isEditing = false;
 
-        // Fungsi simpan pelanggan
-        function simpanPelanggan(event) {
-            event.preventDefault();
+        // Fungsi untuk merender tabel pelanggan
+        function renderPelanggan(filter = 'Semua') {
+            const tbody = document.querySelector('#tabelPelanggan tbody');
+            tbody.innerHTML = '';
 
-            const kategori = document.getElementById('kategoriPelanggan').value;
+            pelangganList
+                .filter(pelanggan => filter === 'Semua' || pelanggan.kategori === filter)
+                .forEach((pelanggan, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${pelanggan.id}</td>
+                        <td>${pelanggan.nama}</td>
+                        <td>${pelanggan.kategori}</td>
+                        <td>${pelanggan.noHp}</td>
+                        <td>${pelanggan.alamat}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="editPelanggan(${index})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="hapusPelanggan(${index})">Hapus</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+        }
+
+        // Tambah atau Edit Pelanggan
+        document.getElementById('formPelanggan').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const kategori = document.getElementById('kategori').value;
             const nama = document.getElementById('nama').value;
             const noHp = document.getElementById('noHp').value;
-            const alamat = document.getElementById('alamat').value;
+            const alamat = document.getElementById('alamat').value || '-';
 
-            const pelanggan = {
-                id: 'PL-' + Date.now(),
-                kategori,
-                nama,
-                noHp,
-                alamat
-            };
+            if (isEditing) {
+                const id = document.getElementById('editId').value;
+                pelangganList = pelangganList.map(pelanggan => 
+                    pelanggan.id === id 
+                        ? { ...pelanggan, kategori, nama, noHp, alamat }
+                        : pelanggan
+                );
+                isEditing = false;
+                document.getElementById('formTitle').textContent = 'Tambah Pelanggan';
+                document.getElementById('cancelEdit').style.display = 'none';
+            } else {
+                const id = `PLG-${Date.now()}`;
+                pelangganList.push({ id, kategori, nama, noHp, alamat });
+            }
 
-            pelangganList.push(pelanggan);
-            localStorage.setItem('pelanggan', JSON.stringify(pelangganList));
-            renderPelanggan();
-            renderDataUmum();
-            document.getElementById('pelangganForm').reset();
+            localStorage.setItem(pelangganKey, JSON.stringify(pelangganList));
+            this.reset();
+            renderPelanggan('Semua');
+        });
+
+        // Fungsi Hapus Pelanggan
+        function hapusPelanggan(index) {
+            if (confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')) {
+                pelangganList.splice(index, 1);
+                localStorage.setItem(pelangganKey, JSON.stringify(pelangganList));
+                renderPelanggan('Semua');
+            }
         }
 
-        // Fungsi render pelanggan
-        function renderPelanggan() {
-            const dataPelangganTable = document.querySelector('#dataPelangganTable tbody');
-            dataPelangganTable.innerHTML = '';
+        // Fungsi Edit Pelanggan
+        function editPelanggan(index) {
+            const pelanggan = pelangganList[index];
+            isEditing = true;
 
-            pelangganList.forEach((pelanggan, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${pelanggan.kategori}</td>
-                    <td>${pelanggan.nama}</td>
-                    <td>${pelanggan.noHp}</td>
-                    <td>${pelanggan.alamat}</td>
-                `;
-                dataPelangganTable.appendChild(row);
-            });
+            document.getElementById('formTitle').textContent = 'Edit Pelanggan';
+            document.getElementById('kategori').value = pelanggan.kategori;
+            document.getElementById('nama').value = pelanggan.nama;
+            document.getElementById('noHp').value = pelanggan.noHp;
+            document.getElementById('alamat').value = pelanggan.alamat;
+            document.getElementById('editId').value = pelanggan.id;
+
+            document.getElementById('cancelEdit').style.display = 'inline-block';
         }
 
-        // Fungsi render data umum
-        function renderDataUmum() {
-            const dataUmumTable = document.querySelector('#dataUmumTable tbody');
-            dataUmumTable.innerHTML = '';
+        // Fungsi Batal Edit
+        document.getElementById('cancelEdit').addEventListener('click', function () {
+            isEditing = false;
+            document.getElementById('formTitle').textContent = 'Tambah Pelanggan';
+            document.getElementById('formPelanggan').reset();
+            this.style.display = 'none';
+        });
 
-            const pelangganUmum = pelangganList.filter(pelanggan => pelanggan.kategori === 'Umum');
-            pelangganUmum.forEach((pelanggan, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${pelanggan.nama}</td>
-                    <td>${pelanggan.noHp}</td>
-                    <td>${pelanggan.alamat}</td>
-                `;
-                dataUmumTable.appendChild(row);
-            });
-        }
+        // Event listener untuk filter kategori
+        document.getElementById('filterKategori').addEventListener('change', function () {
+            renderPelanggan(this.value);
+        });
 
-        // Event listener simpan pelanggan
-        document.getElementById('pelangganForm').addEventListener('submit', simpanPelanggan);
-
-        // Render data awal
-        renderPelanggan();
-        renderDataUmum();
+        // Render awal
+        renderPelanggan('Semua');
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
