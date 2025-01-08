@@ -1,98 +1,262 @@
-let transaksiList = [];
-let keranjang = [];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Transaksi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #buktiPembayaranDiv {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">Halaman Transaksi</h2>
 
-function toggleBuktiPembayaran() {
-    const metodePembayaran = document.getElementById('metodePembayaran').value;
-    const buktiDiv = document.getElementById('buktiPembayaranDiv');
-    const keteranganDiv = document.getElementById('keteranganPembayaranDiv');
+        <!-- Form Transaksi -->
+        <form id="transaksiForm">
+            <!-- Pilih Pelanggan -->
+            <div class="mb-3">
+                <label for="pelanggan" class="form-label">Pilih Pelanggan</label>
+                <select class="form-select" id="pelanggan" required>
+                    <option value="" disabled selected>Pilih Pelanggan</option>
+                </select>
+            </div>
 
-    if (metodePembayaran === 'Cash') {
-        buktiDiv.style.display = 'none';
-        keteranganDiv.style.display = 'none';
-    } else {
-        buktiDiv.style.display = 'block';
-        keteranganDiv.style.display = 'block';
-    }
-}
+            <!-- Pilih Produk -->
+            <div class="mb-3">
+                <label for="produk" class="form-label">Pilih Produk</label>
+                <select class="form-select" id="produk">
+                    <option value="" disabled selected>Pilih Produk</option>
+                </select>
+            </div>
 
-function tambahKeKeranjang() {
-    const produk = document.getElementById('produk').value.split('|');
-    const namaProduk = produk[0];
-    const hargaProduk = parseInt(produk[1]);
-    keranjang.push({ namaProduk, hargaProduk });
-    renderKeranjang();
-}
+            <!-- Jumlah Produk -->
+            <div class="mb-3">
+                <label for="jumlah" class="form-label">Jumlah</label>
+                <input type="number" class="form-control" id="jumlah" placeholder="Masukkan jumlah produk">
+            </div>
 
-function renderKeranjang() {
-    const keranjangList = document.getElementById('keranjangList');
-    keranjangList.innerHTML = '';
-    let total = 0;
+            <!-- Keranjang -->
+            <button type="button" class="btn btn-secondary mb-3" id="tambahKeranjang">Tambah ke Keranjang</button>
 
-    keranjang.forEach((item, index) => {
-        total += item.hargaProduk;
-        keranjangList.innerHTML += `
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                ${item.namaProduk} - Rp ${item.hargaProduk}
-                <button class="btn btn-danger btn-sm" onclick="hapusDariKeranjang(${index})">Hapus</button>
-            </li>`;
-    });
+            <h4>Keranjang</h4>
+            <table class="table table-striped" id="keranjangTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Produk</th>
+                        <th>Harga</th>
+                        <th>Jumlah</th>
+                        <th>Subtotal</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
 
-    document.getElementById('totalDisplay').textContent = total;
-}
+            <!-- Total -->
+            <div class="mb-3">
+                <label for="total" class="form-label">Total</label>
+                <input type="number" class="form-control" id="total" readonly>
+            </div>
 
-function hapusDariKeranjang(index) {
-    keranjang.splice(index, 1);
-    renderKeranjang();
-}
+            <!-- Metode Pembayaran -->
+            <div class="mb-3">
+                <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
+                <select class="form-select" id="metodePembayaran" required>
+                    <option value="Cash">Cash</option>
+                    <option value="Transfer">Transfer</option>
+                    <option value="QR">QR</option>
+                    <option value="Ewallet">Ewallet</option>
+                </select>
+            </div>
 
-document.getElementById('transaksiForm').addEventListener('submit', function (e) {
-    e.preventDefault();
+            <!-- Jumlah Dibayar -->
+            <div class="mb-3">
+                <label for="bayar" class="form-label">Jumlah Dibayar</label>
+                <input type="number" class="form-control" id="bayar" placeholder="Masukkan Jumlah Dibayar" required>
+            </div>
 
-    const pelangganType = document.getElementById('pelanggan').value;
-    const pelanggan =
-        pelangganType === 'umum'
-            ? document.getElementById('pelangganUmum').value
-            : document.getElementById('member').value;
-    const metodePembayaran = document.getElementById('metodePembayaran').value;
-    const total = keranjang.reduce((acc, item) => acc + item.hargaProduk, 0);
-    const bayar = parseInt(document.getElementById('bayar').value);
-    const idTransaksi = 'TRX-' + Date.now();
-    let status = 'Belum Lunas';
+            <!-- Bukti Pembayaran -->
+            <div class="mb-3" id="buktiPembayaranDiv">
+                <label for="buktiPembayaran" class="form-label">Upload Bukti Pembayaran</label>
+                <input type="file" class="form-control" id="buktiPembayaran" accept=".jpg,.jpeg,.png,.pdf">
+            </div>
 
-    if (metodePembayaran === 'Cash' && bayar >= total) {
-        status = 'Lunas';
-    }
+            <button type="submit" class="btn btn-primary">Proses Transaksi</button>
+        </form>
 
-    const transaksi = {
-        id: idTransaksi,
-        pelanggan,
-        total,
-        metodePembayaran,
-        status,
-    };
+        <!-- Daftar Transaksi -->
+        <h4 class="mt-5">Daftar Transaksi</h4>
+        <table class="table table-striped" id="transaksiTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ID Transaksi</th>
+                    <th>Pelanggan</th>
+                    <th>Total</th>
+                    <th>Metode</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-    transaksiList.push(transaksi);
-    renderTransaksi();
-    this.reset();
-    keranjang = [];
-    renderKeranjang();
-});
+    <!-- Modal Detail Transaksi -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">Detail Transaksi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detailContent">
+                    <!-- Detail transaksi akan ditampilkan di sini -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="sendWhatsApp">Kirim ke WhatsApp</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-function renderTransaksi() {
-    const daftarTransaksi = document.getElementById('daftarTransaksi');
-    daftarTransaksi.innerHTML = '';
+    <script>
+        let keranjang = [];
+        const pelangganList = JSON.parse(localStorage.getItem('pelanggan')) || [];
+        const produkList = JSON.parse(localStorage.getItem('produk')) || [];
+        const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
 
-    transaksiList.forEach((transaksi, index) => {
-        daftarTransaksi.innerHTML += `
-            <tr>
-                <td>${transaksi.id}</td>
-                <td>${transaksi.pelanggan}</td>
-                <td>Rp ${transaksi.total}</td>
-                <td>${transaksi.metodePembayaran}</td>
-                <td>${transaksi.status}</td>
-                <td>
-                    <button class="btn btn-info btn-sm" onclick="lihatDetail(${index})">Detail</button>
-                </td>
-            </tr>`;
-    });
-}
+        // Render pelanggan dan produk
+        function renderDropdown(id, data, labelKey) {
+            const dropdown = document.getElementById(id);
+            dropdown.innerHTML = '<option value="" disabled selected>Pilih</option>';
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify(item);
+                option.textContent = item[labelKey];
+                dropdown.appendChild(option);
+            });
+        }
+
+        // Event handler metode pembayaran
+        document.getElementById('metodePembayaran').addEventListener('change', function () {
+            const metode = this.value;
+            document.getElementById('buktiPembayaranDiv').style.display = metode === 'Cash' ? 'none' : 'block';
+        });
+
+        // Tambahkan produk ke keranjang
+        document.getElementById('tambahKeranjang').addEventListener('click', () => {
+            const produk = JSON.parse(document.getElementById('produk').value || '{}');
+            const jumlah = parseInt(document.getElementById('jumlah').value || 0);
+            if (jumlah > 0) {
+                keranjang.push({ ...produk, jumlah, subtotal: produk.harga * jumlah });
+                renderKeranjang();
+            }
+        });
+
+        function renderKeranjang() {
+            const tbody = document.querySelector('#keranjangTable tbody');
+            tbody.innerHTML = '';
+            let total = 0;
+            keranjang.forEach((item, index) => {
+                total += item.subtotal;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.nama}</td>
+                        <td>${item.harga}</td>
+                        <td>${item.jumlah}</td>
+                        <td>${item.subtotal}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="hapusKeranjang(${index})">Hapus</button></td>
+                    </tr>`;
+            });
+            document.getElementById('total').value = total;
+        }
+
+        function hapusKeranjang(index) {
+            keranjang.splice(index, 1);
+            renderKeranjang();
+        }
+
+        // Proses Transaksi
+        document.getElementById('transaksiForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const pelanggan = JSON.parse(document.getElementById('pelanggan').value || '{}');
+            const total = parseInt(document.getElementById('total').value || 0);
+            const metodePembayaran = document.getElementById('metodePembayaran').value;
+            const bayar = parseInt(document.getElementById('bayar').value || 0);
+            const id = 'TRX-' + Date.now();
+            let status = 'Belum Lunas';
+            let buktiPembayaran = null;
+
+            if (metodePembayaran !== 'Cash') {
+                const file = document.getElementById('buktiPembayaran').files[0];
+                buktiPembayaran = file ? `${id}.${file.name.split('.').pop()}` : null;
+            }
+
+            if (metodePembayaran === 'Cash' && bayar >= total) {
+                status = 'Lunas';
+            }
+
+            transaksiList.push({ id, pelanggan: pelanggan.nama, total, metodePembayaran, bayar, status, buktiPembayaran });
+            localStorage.setItem('transaksi', JSON.stringify(transaksiList));
+            resetForm();
+            renderTransaksi();
+        });
+
+        function resetForm() {
+            document.getElementById('transaksiForm').reset();
+            keranjang = [];
+            renderKeranjang();
+        }
+
+        function renderTransaksi() {
+            const tbody = document.querySelector('#transaksiTable tbody');
+            tbody.innerHTML = '';
+            transaksiList.forEach((transaksi, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${transaksi.id}</td>
+                        <td>${transaksi.pelanggan}</td>
+                        <td>${transaksi.total}</td>
+                        <td>${transaksi.metodePembayaran}</td>
+                        <td>${transaksi.status}</td>
+                        <td><button class="btn btn-info btn-sm" onclick="viewDetail(${index})">Detail</button></td>
+                    </tr>`;
+            });
+        }
+
+        function viewDetail(index) {
+            const transaksi = transaksiList[index];
+            const content = `
+                <p><strong>ID Transaksi:</strong> ${transaksi.id}</p>
+                <p><strong>Pelanggan:</strong> ${transaksi.pelanggan}</p>
+                <p><strong>Total:</strong> ${transaksi.total}</p>
+                <p><strong>Metode Pembayaran:</strong> ${transaksi.metodePembayaran}</p>
+                <p><strong>Status:</strong> ${transaksi.status}</p>
+                ${transaksi.buktiPembayaran ? `<p><strong>Bukti Pembayaran:</strong> ${transaksi.buktiPembayaran}</p>` : ''}
+            `;
+            document.getElementById('detailContent').innerHTML = content;
+
+            document.getElementById('sendWhatsApp').onclick = function () {
+                const message = `Detail Transaksi:\nID: ${transaksi.id}\nPelanggan: ${transaksi.pelanggan}\nTotal: ${transaksi.total}\nStatus: ${transaksi.status}`;
+                const whatsappLink = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                window.open(whatsappLink, '_blank');
+            };
+            const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
+            detailModal.show();
+        }
+
+        renderDropdown('pelanggan', pelangganList, 'nama');
+        renderDropdown('produk', produkList, 'nama');
+        renderTransaksi();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
