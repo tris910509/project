@@ -20,38 +20,57 @@
     <div class="container mt-5">
         <h2 class="text-center">Transaksi - Keranjang Belanja</h2>
 
-        <h4>Tambah ke Keranjang</h4>
-        <form id="keranjangForm" class="mb-4">
-            <div class="mb-3">
-                <label for="produk" class="form-label">Produk</label>
-                <select class="form-select" id="produk" required></select>
-            </div>
-            <div class="mb-3">
-                <label for="jumlah" class="form-label">Jumlah</label>
-                <input type="number" class="form-control" id="jumlah" placeholder="Masukkan jumlah" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Tambah ke Keranjang</button>
-        </form>
-
-        <h4>Keranjang Belanja</h4>
-        <table class="table table-striped" id="keranjangTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Produk</th>
-                    <th>Jumlah</th>
-                    <th>Total Harga</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="keranjangTableBody"></tbody>
-        </table>
-
-        <h4>Total Keranjang</h4>
-        <p id="totalKeranjangText"></p>
-
-        <h4>Pilih Metode Pembayaran dan Proses Pembayaran</h4>
+        <!-- Pilih Pelanggan -->
+        <h4>Pilih Pelanggan</h4>
         <form id="transaksiForm" class="mb-4">
+            <div class="mb-3">
+                <label for="pelanggan" class="form-label">Pelanggan</label>
+                <select class="form-select" id="pelanggan" required>
+                    <option value="Umum">Pelanggan Umum</option>
+                    <option value="Member">Pelanggan Member</option>
+                </select>
+            </div>
+
+            <!-- Dropdown Member (akan muncul jika memilih Pelanggan Member) -->
+            <div class="mb-3" id="memberSection" style="display: none;">
+                <label for="member" class="form-label">Pilih Member</label>
+                <select class="form-select" id="member" required>
+                    <!-- Nama member akan dimuat dari localStorage -->
+                </select>
+            </div>
+
+            <!-- Keranjang Belanja -->
+            <h4>Tambah ke Keranjang</h4>
+            <form id="keranjangForm" class="mb-4">
+                <div class="mb-3">
+                    <label for="produk" class="form-label">Produk</label>
+                    <select class="form-select" id="produk" required></select>
+                </div>
+                <div class="mb-3">
+                    <label for="jumlah" class="form-label">Jumlah</label>
+                    <input type="number" class="form-control" id="jumlah" placeholder="Masukkan jumlah" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Tambah ke Keranjang</button>
+            </form>
+
+            <h4>Keranjang Belanja</h4>
+            <table class="table table-striped" id="keranjangTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Produk</th>
+                        <th>Jumlah</th>
+                        <th>Total Harga</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="keranjangTableBody"></tbody>
+            </table>
+
+            <h4>Total Keranjang</h4>
+            <p id="totalKeranjangText"></p>
+
+            <h4>Pilih Metode Pembayaran dan Proses Pembayaran</h4>
             <div class="mb-3">
                 <label for="metodePembayaran" class="form-label">Metode Pembayaran</label>
                 <select class="form-select" id="metodePembayaran" required>
@@ -59,6 +78,7 @@
                     <option value="Transfer">Transfer</option>
                 </select>
             </div>
+
             <div class="mb-3">
                 <label for="diskon" class="form-label">Diskon (%)</label>
                 <input type="number" class="form-control" id="diskon" value="0" placeholder="Masukkan diskon" required>
@@ -68,7 +88,6 @@
                 <input type="number" class="form-control" id="jumlahBayar" placeholder="Masukkan jumlah bayar" required>
             </div>
 
-            <!-- Tambahan untuk konfirmasi pembayaran transfer -->
             <div id="transferSection" class="d-none">
                 <h5>Konfirmasi Pembayaran Transfer</h5>
                 <div class="mb-3">
@@ -91,6 +110,9 @@
         <p id="diskonText"></p>
         <p id="totalYangHarusDibayarText"></p>
         <p id="kembalianText"></p>
+
+        <h4>Status Pembayaran</h4>
+        <p id="statusPembayaranDetail"></p>
     </div>
 
     <script>
@@ -99,14 +121,19 @@
             return JSON.parse(localStorage.getItem('produk')) || [];
         }
 
-        // Mengambil data metode pembayaran dari localStorage
-        function getMetodePembayaran() {
-            return JSON.parse(localStorage.getItem('metodePembayaran')) || [];
-        }
-
         // Mengambil data keranjang belanja dari localStorage
         function getKeranjang() {
             return JSON.parse(localStorage.getItem('keranjang')) || [];
+        }
+
+        // Mengambil data member dari localStorage
+        function getMember() {
+            return JSON.parse(localStorage.getItem('member')) || [];
+        }
+
+        // Mengambil data transaksi dari localStorage
+        function getTransaksi() {
+            return JSON.parse(localStorage.getItem('transaksi')) || [];
         }
 
         // Menyimpan data keranjang ke localStorage
@@ -122,23 +149,34 @@
         // Render produk dan metode pembayaran ke dalam dropdown
         function renderDropdowns() {
             const produkList = getProduk();
-            const metodeList = getMetodePembayaran();
-
-            const produkDropdown = document.getElementById('produk');
             const metodeDropdown = document.getElementById('metodePembayaran');
+            const pelangganDropdown = document.getElementById('pelanggan');
+            const memberSection = document.getElementById('memberSection');
+            const memberDropdown = document.getElementById('member');
 
             produkList.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.nama;
                 option.textContent = item.nama;
-                produkDropdown.appendChild(option);
+                metodeDropdown.appendChild(option);
             });
 
-            metodeList.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.nama;
-                option.textContent = item.nama;
-                metodeDropdown.appendChild(option);
+            // Menampilkan member jika memilih "Pelanggan Member"
+            pelangganDropdown.addEventListener('change', function() {
+                if (this.value === 'Member') {
+                    memberSection.style.display = 'block';
+                    const memberList = getMember();
+                    memberDropdown.innerHTML = '';
+
+                    memberList.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.nama;
+                        option.textContent = item.nama;
+                        memberDropdown.appendChild(option);
+                    });
+                } else {
+                    memberSection.style.display = 'none';
+                }
             });
         }
 
@@ -235,6 +273,8 @@
         document.getElementById('transaksiForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
+            const pelanggan = document.getElementById('pelanggan').value;
+            const member = pelanggan === 'Member' ? document.getElementById('member').value : 'Pelanggan Umum';
             const diskon = parseInt(document.getElementById('diskon').value);
             const jumlahBayar = parseInt(document.getElementById('jumlahBayar').value);
 
@@ -256,14 +296,18 @@
             const kembalian = jumlahBayar - totalYangHarusDibayar;
 
             // Menyimpan transaksi setelah pembayaran
-            const transaksiList = JSON.parse(localStorage.getItem('transaksi')) || [];
+            const transaksiList = getTransaksi();
+            const statusPembayaran = document.getElementById('metodePembayaran').value === 'Transfer' ? 'Pembayaran Dikonfirmasi' : 'Pembayaran Selesai';
+
             transaksiList.push({
+                pelanggan: member,
                 keranjang: keranjangList,
                 totalHarga: totalKeranjang,
                 diskon,
                 totalYangHarusDibayar,
                 kembalian,
-                metodePembayaran: document.getElementById('metodePembayaran').value
+                metodePembayaran: document.getElementById('metodePembayaran').value,
+                statusPembayaran
             });
             saveTransaksi(transaksiList);
 
@@ -272,6 +316,9 @@
             document.getElementById('diskonText').textContent = `Diskon: ${diskon}% (Rp ${diskonAmount})`;
             document.getElementById('totalYangHarusDibayarText').textContent = `Total yang harus dibayar: Rp ${totalYangHarusDibayar}`;
             document.getElementById('kembalianText').textContent = `Kembalian: Rp ${kembalian}`;
+
+            // Tampilkan status pembayaran
+            document.getElementById('statusPembayaranDetail').textContent = `Status Pembayaran: ${statusPembayaran}`;
 
             // Kosongkan keranjang setelah pembayaran
             saveKeranjang([]);
